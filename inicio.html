@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Biblioteca</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+:root {
+  --bg:       #0f0f0f;
+  --surface:  #181818;
+  --surface2: #222;
+  --surface3: #2e2e2e;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #e8e8e8;
+  --muted:    #666;
+  --muted2:   #888;
+  --accent:   #f5a623;
+  --r:        10px;
+  --nav-h:    54px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  padding-bottom: 40px;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── Navbar ── */
+.top-nav {
+  background: rgba(15,15,15,0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  min-height: var(--nav-h);
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  position: sticky; top: 0; z-index: 200;
+}
+.brand { font-size: 15px; font-weight: 700; color: #fff;
+         display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.brand-icon {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #111; font-size: 14px;
+}
+@media (max-width: 520px) { .brand-text { display: none; } }
+
+.search-wrap { position: relative; flex: 1; min-width: 0; max-width: 560px; margin-left: auto; }
+.search-wrap > i.bi-search {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 14px; pointer-events: none;
+}
+#q {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 22px; padding: 9px 36px 9px 36px; color: var(--text);
+  font-size: 14px; font-family: inherit; outline: none;
+}
+#q:focus { border-color: var(--accent); background: var(--surface3); }
+.search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--muted2); font-size: 15px;
+  cursor: pointer; padding: 4px 7px; display: none; border-radius: 50%;
+}
+.search-clear.show { display: block; }
+
+/* ── Contenedor ── */
+.wrap { max-width: 1400px; margin: 0 auto; padding: 14px 12px 0; }
+
+/* ── Accesos a secciones ── */
+.secciones { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.sec-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 500;
+  color: var(--text); cursor: pointer; transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sec-btn:hover { background: var(--surface2); border-color: var(--border2); }
+.sec-btn .n { color: var(--muted); font-size: 11px; }
+.sec-btn .badge-novedad {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #ec407a; color: #fff; font-weight: 700; font-size: 10.5px;
+  padding: 2px 7px; border-radius: 999px; margin-left: 2px;
+  animation: pulse-novedad 2s ease-in-out infinite;
+}
+.sec-btn .badge-novedad i { font-size: 9px; }
+@keyframes pulse-novedad {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(236,64,122,0.5); }
+  50%      { box-shadow: 0 0 0 4px rgba(236,64,122,0); }
+}
+.sec-btn i { color: var(--accent); font-size: 14px; }
+
+/* ── Filas ── */
+.fila { margin-bottom: 26px; }
+.fila-head {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+  padding-right: 2px;
+}
+.fila-head h2 {
+  font-size: 15px; font-weight: 600; letter-spacing: .2px;
+  display: flex; align-items: center; gap: 7px;
+}
+.fila-head h2 i { color: var(--accent); font-size: 15px; }
+.fila-head .cnt { color: var(--muted); font-size: 12px; }
+.fila-head .act {
+  margin-left: auto; background: none; border: 1px solid var(--border2);
+  color: var(--muted2); border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.fila-head .act:hover { color: var(--text); border-color: var(--accent); }
+
+.carrusel {
+  display: flex; gap: 11px; overflow-x: auto; scroll-snap-type: x proximity;
+  padding-bottom: 6px; scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+}
+.carrusel::-webkit-scrollbar { height: 6px; }
+.carrusel::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+.carrusel::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Tarjeta ── */
+.card {
+  flex: 0 0 auto; width: 132px; scroll-snap-align: start;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 700px) { .card { width: 152px; } }
+.card-img {
+  position: relative; width: 100%; aspect-ratio: 3/4;
+  background: var(--surface2); border-radius: var(--r);
+  overflow: hidden; border: 1px solid var(--border);
+}
+.card-img img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .25s ease;
+}
+.card:hover .card-img img { transform: scale(1.045); }
+.card-img .ph {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--surface3); font-size: 30px;
+}
+.badge-tipo {
+  position: absolute; top: 6px; left: 6px; font-size: 9.5px; font-weight: 600;
+  padding: 2.5px 7px; border-radius: 5px; letter-spacing: .3px;
+  background: rgba(0,0,0,.72); backdrop-filter: blur(4px); text-transform: uppercase;
+}
+.t-manga     { color: #ffcd6a; }
+.t-hentai    { color: #f48fb1; }
+.t-animacion { color: #80cbc4; }
+.t-xxx       { color: #ef9a9a; }
+.t-galeria   { color: #b39ddb; }
+.badge-n {
+  position: absolute; top: 6px; right: 6px; font-size: 9.5px;
+  padding: 2.5px 6px; border-radius: 5px; color: #ddd;
+  background: rgba(0,0,0,.72); backdrop-filter: blur(4px);
+}
+.barra {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: rgba(0,0,0,.55);
+}
+.barra > span { display: block; height: 100%; background: var(--accent); }
+.play-ovl {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; opacity: 0; transition: opacity .18s;
+  background: rgba(0,0,0,.3); font-size: 30px; color: #fff;
+}
+.card:hover .play-ovl { opacity: 1; }
+.card-txt {
+  margin-top: 6px; font-size: 11.5px; line-height: 1.35; color: #ddd;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+/* ── Buscador ── */
+#resultados { display: none; }
+#resultados.on { display: block; }
+#panelHome.off { display: none; }
+.grid {
+  display: grid; gap: 11px;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+}
+.grid .card { width: auto; }
+.filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.filtro {
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted2);
+  border-radius: 999px; padding: 5px 13px; font-size: 12px; cursor: pointer;
+  font-family: inherit;
+}
+.filtro.on { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 600; }
+
+.vacio { color: var(--muted); font-size: 13px; padding: 26px 4px; text-align: center; }
+.skel {
+  flex: 0 0 auto; width: 132px; aspect-ratio: 3/4; border-radius: var(--r);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+  background-size: 200% 100%; animation: sk 1.3s infinite;
+}
+@keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Pie ── */
+.pie {
+  max-width: 1400px; margin: 30px auto 0; padding: 16px 12px;
+  border-top: 1px solid var(--border); color: var(--muted);
+  font-size: 11.5px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+}
+.pie button {
+  background: none; border: 1px solid var(--border2); color: var(--muted2);
+  border-radius: 7px; padding: 4px 10px; font-size: 11.5px; cursor: pointer;
+  font-family: inherit;
+}
+.pie button:hover { color: var(--text); border-color: var(--accent); }
+#toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%) translateY(90px);
+  background: var(--surface3); color: #fff; padding: 10px 18px; border-radius: 9px;
+  font-size: 12.5px; z-index: 500; transition: transform .25s; box-shadow: 0 6px 20px rgba(0,0,0,.5);
+}
+#toast.on { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="/inicio">
+    <span class="brand-icon"><i class="bi bi-collection-play-fill"></i></span>
+    <span class="brand-text">Biblioteca</span>
+  </a>
+  <div class="search-wrap">
+    <i class="bi bi-search"></i>
+    <input id="q" type="search" placeholder="Buscar en toda la biblioteca…"
+           autocomplete="off" enterkeyhint="search">
+    <button class="search-clear" id="qClear" aria-label="Limpiar">✕</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="secciones" id="secciones"></div>
+
+  <!-- ── Resultados de búsqueda ── -->
+  <div id="resultados">
+    <div class="filtros" id="filtros"></div>
+    <div id="resGrid"></div>
+  </div>
+
+  <!-- ── Home ── -->
+  <div id="panelHome">
+    <div class="fila" id="fila-viendo"></div>
+    <div class="fila" id="fila-leyendo"></div>
+    <div class="fila" id="fila-recientes"></div>
+    <div class="fila" id="fila-sorpresa"></div>
+  </div>
+
+</div>
+
+<div class="pie" id="pie"></div>
+<div id="toast"></div>
+
+<script>
+const TIPOS = ['manga', 'hentai', 'animacion', 'xxx', 'galeria'];
+const ETIQUETAS = { manga: 'Manga', hentai: 'Hentai', animacion: 'Animación',
+                    xxx: 'XXX', galeria: 'Galería' };
+const ICONOS = { manga: 'bi-book', hentai: 'bi-camera-reels', animacion: 'bi-film',
+                 xxx: 'bi-play-btn', galeria: 'bi-images' };
+// Hentai, animaciones y XXX viven en la misma página (con sus pestañas).
+const ENLACES = { manga: '/manga', hentai: '/reproductor-universal-galeria.html',
+                  animacion: '/reproductor-universal-galeria.html?seccion=animaciones',
+                  xxx: '/reproductor-universal-galeria.html?seccion=xxx',
+                  galeria: '/galeria.html' };
+
+let datos = null;
+let filtroTipo = '';
+
+// ── Utilidades ────────────────────────────────────────────────────────────────
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function bytes(n) {
+  if (!n) return '';
+  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
+}
+
+function tiempo(seg) {
+  // 0 es un valor válido (video recién empezado): solo descartamos null/NaN
+  if (seg == null || isNaN(seg)) return '';
+  const m = Math.floor(seg / 60), s = Math.floor(seg % 60);
+  if (m < 60) return `${m}:${String(s).padStart(2, '0')}`;
+  return `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+let toastT;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+// ── Tarjeta ───────────────────────────────────────────────────────────────────
+function tarjeta(it, opciones = {}, idx = 99) {
+  const prog = it.progreso || 0;
+  const esVideo = it.tipo !== 'manga' && it.tipo !== 'galeria';
+  let sub = '';
+  if (opciones.tiempo && it.duracion) {
+    sub = `${tiempo(it.posicion)} / ${tiempo(it.duracion)}`;
+  } else if (it.tipo === 'manga' && it.total) {
+    sub = `${it.leidas}/${it.total} págs`;
+  } else if (it.tipo === 'galeria') {
+    sub = `${it.n_items} img`;
+  } else if (it.n_items > 1) {
+    sub = `${it.n_items} videos`;
+  } else if (it.tamano) {
+    sub = bytes(it.tamano);
+  }
+
+  const img = it.preview
+    ? `<img src="${esc(it.preview)}" alt="" loading="${idx < 8 ? 'eager' : 'lazy'}" decoding="async"
+            onerror="this.style.display='none'">`
+    : `<div class="ph"><i class="bi ${ICONOS[it.tipo] || 'bi-file-earmark'}"></i></div>`;
+
+  return `
+    <a class="card" href="${esc(it.url)}" title="${esc(it.titulo || it.nombre)}">
+      <div class="card-img">
+        ${img}
+        <span class="badge-tipo t-${it.tipo}">${esc(it.etiqueta || ETIQUETAS[it.tipo] || '')}</span>
+        ${it.seccion && it.tipo !== 'manga'
+          ? `<span class="badge-n">${esc(String(it.seccion).slice(0, 14))}</span>` : ''}
+        ${esVideo ? '<div class="play-ovl"><i class="bi bi-play-circle-fill"></i></div>' : ''}
+        ${prog > 0 ? `<div class="barra"><span style="width:${Math.min(100, prog)}%"></span></div>` : ''}
+      </div>
+      <div class="card-txt">${esc(it.titulo || it.nombre)}</div>
+      ${sub ? `<div class="card-sub">${esc(sub)}</div>` : ''}
+    </a>`;
+}
+
+function fila(id, titulo, icono, items, opciones = {}) {
+  const el = document.getElementById(id);
+  if (!items || !items.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="fila-head">
+      <h2><i class="bi ${icono}"></i> ${titulo}</h2>
+      <span class="cnt">${items.length}</span>
+      ${opciones.accion
+        ? `<button class="act" onclick="${opciones.accion}">${opciones.accionTxt}</button>` : ''}
+    </div>
+    <div class="carrusel">${items.map((i, idx) => tarjeta(i, opciones, idx)).join('')}</div>`;
+}
+
+function esqueletos(id, n = 8) {
+  document.getElementById(id).innerHTML =
+    `<div class="carrusel">${'<div class="skel"></div>'.repeat(n)}</div>`;
+}
+
+// ── Home ──────────────────────────────────────────────────────────────────────
+async function cargarHome() {
+  ['fila-viendo', 'fila-leyendo', 'fila-recientes', 'fila-sorpresa'].forEach(id => esqueletos(id));
+  try {
+    const r = await fetch('/api/home?limite=18');
+    datos = await r.json();
+  } catch (e) {
+    document.getElementById('panelHome').innerHTML =
+      '<div class="vacio">No se pudo cargar la biblioteca.</div>';
+    return;
+  }
+  pintarHome();
+  pintarSecciones();
+  pintarPie();
+  pintarBadgeNovedades();
+
+  // El índice todavía se está construyendo: reintentar una vez cuando termine
+  if (datos.indice && !datos.indice.listo) setTimeout(cargarHome, 8000);
+}
+
+function pintarHome() {
+  fila('fila-viendo', 'Seguir viendo', 'bi-play-circle', datos.continuar_viendo,
+       { tiempo: true });
+  fila('fila-leyendo', 'Seguir leyendo', 'bi-bookmark-check', datos.continuar_leyendo);
+  fila('fila-recientes', 'Agregado hace poco', 'bi-stars', datos.recientes);
+  fila('fila-sorpresa', 'Sorpresa', 'bi-shuffle', datos.sorpresa,
+       { accion: 'otraSorpresa()', accionTxt: '<i class="bi bi-arrow-repeat"></i> Otra' });
+
+  const vacia = !['continuar_viendo', 'continuar_leyendo', 'recientes', 'sorpresa']
+    .some(k => (datos[k] || []).length);
+  if (vacia) {
+    document.getElementById('panelHome').innerHTML = datos.indice?.escaneando
+      ? '<div class="vacio"><i class="bi bi-hourglass-split"></i> Indexando la biblioteca por primera vez…</div>'
+      : '<div class="vacio">Todavía no hay nada indexado.</div>';
+  }
+}
+
+async function otraSorpresa() {
+  try {
+    const r = await fetch('/api/home?limite=18');
+    const d = await r.json();
+    datos.sorpresa = d.sorpresa;
+    fila('fila-sorpresa', 'Sorpresa', 'bi-shuffle', datos.sorpresa,
+         { accion: 'otraSorpresa()', accionTxt: '<i class="bi bi-arrow-repeat"></i> Otra' });
+  } catch {}
+}
+
+function pintarSecciones() {
+  const porTipo = datos.resumen?.por_tipo || {};
+  document.getElementById('secciones').innerHTML = TIPOS.map(t => {
+    const n = porTipo[t]?.items || 0;
+    return `<a class="sec-btn" href="${ENLACES[t]}">
+              <i class="bi ${ICONOS[t]}"></i> ${ETIQUETAS[t]}
+              ${n ? `<span class="n">${n}</span>` : ''}
+            </a>`;
+  }).join('') + `
+    <a class="sec-btn" id="descargasLink" href="/descargas"><i class="bi bi-download"></i> Descargas</a>
+    <a class="sec-btn" href="/estadisticas"><i class="bi bi-bar-chart-fill"></i> Estadísticas</a>
+    <a class="sec-btn" href="/bakemono"><i class="bi bi-car-front-fill"></i> Bakemono</a>`;
+}
+
+async function pintarBadgeNovedades() {
+  try {
+    const r = await fetch('/api/descargas/novedades');
+    const d = await r.json();
+    const n = (d.novedades || []).length;
+    if (!n) return;
+    const link = document.getElementById('descargasLink');
+    if (!link) return;
+    const badge = document.createElement('span');
+    badge.className = 'n badge-novedad';
+    badge.title = `${n} serie${n !== 1 ? 's' : ''} con episodios nuevos`;
+    badge.innerHTML = `<i class="bi bi-bell-fill"></i> ${n}`;
+    link.appendChild(badge);
+  } catch {}
+}
+
+function pintarPie() {
+  const r = datos.resumen || {};
+  const ind = datos.indice || {};
+  document.getElementById('pie').innerHTML = `
+    <span><i class="bi bi-hdd"></i> ${r.total || 0} ítems · ${bytes(r.bytes)}</span>
+    <span>${ind.escaneando ? 'Indexando…' : 'Índice al día'}</span>
+    <button onclick="reindexar()"><i class="bi bi-arrow-clockwise"></i> Reindexar</button>`;
+}
+
+async function reindexar() {
+  try {
+    await fetch('/api/indice/rescan', { method: 'POST' });
+    toast('Escaneo iniciado — se actualiza en unos segundos');
+    setTimeout(cargarHome, 6000);
+  } catch { toast('No se pudo iniciar el escaneo'); }
+}
+
+// ── Búsqueda ──────────────────────────────────────────────────────────────────
+const input = document.getElementById('q');
+const clearBtn = document.getElementById('qClear');
+let debounce, ultimaBusqueda = '';
+
+input.addEventListener('input', () => {
+  clearBtn.classList.toggle('show', !!input.value);
+  clearTimeout(debounce);
+  debounce = setTimeout(buscar, 220);
+});
+input.addEventListener('keydown', e => { if (e.key === 'Escape') limpiar(); });
+clearBtn.addEventListener('click', limpiar);
+
+function limpiar() {
+  input.value = '';
+  clearBtn.classList.remove('show');
+  mostrarHome();
+  input.blur();
+}
+
+function mostrarHome() {
+  document.getElementById('resultados').classList.remove('on');
+  document.getElementById('panelHome').classList.remove('off');
+  ultimaBusqueda = '';
+}
+
+async function buscar() {
+  const q = input.value.trim();
+  if (!q) { mostrarHome(); return; }
+  if (q === ultimaBusqueda) return;
+  ultimaBusqueda = q;
+
+  document.getElementById('resultados').classList.add('on');
+  document.getElementById('panelHome').classList.add('off');
+
+  try {
+    const url = `/api/buscar?q=${encodeURIComponent(q)}&limite=200`;
+    const d = await (await fetch(url)).json();
+    if (input.value.trim() !== q) return;   // llegó tarde, ya hay otra búsqueda
+    pintarResultados(d);
+  } catch {
+    document.getElementById('resGrid').innerHTML =
+      '<div class="vacio">Error al buscar.</div>';
+  }
+}
+
+function pintarResultados(d) {
+  const porTipo = d.por_tipo || {};
+  const disponibles = TIPOS.filter(t => (porTipo[t] || []).length);
+
+  document.getElementById('filtros').innerHTML = d.total ? `
+    <button class="filtro ${filtroTipo ? '' : 'on'}" onclick="setFiltro('')">
+      Todo <span>${d.total}</span>
+    </button>` + disponibles.map(t => `
+    <button class="filtro ${filtroTipo === t ? 'on' : ''}" onclick="setFiltro('${t}')">
+      ${ETIQUETAS[t]} <span>${porTipo[t].length}</span>
+    </button>`).join('') : '';
+
+  const items = filtroTipo ? (porTipo[filtroTipo] || []) : (d.resultados || []);
+  document.getElementById('resGrid').innerHTML = items.length
+    ? `<div class="grid">${items.map(i => tarjeta(i)).join('')}</div>`
+    : `<div class="vacio">Nada para “${esc(d.q)}”.</div>`;
+  window._ultimoResultado = d;
+}
+
+function setFiltro(t) {
+  filtroTipo = (filtroTipo === t) ? '' : t;
+  if (window._ultimoResultado) pintarResultados(window._ultimoResultado);
+}
+
+// ── Arranque ──────────────────────────────────────────────────────────────────
+cargarHome();
+
+// Atajo: "/" enfoca el buscador
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== input) {
+    e.preventDefault();
+    input.focus();
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

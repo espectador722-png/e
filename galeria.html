@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Galería +18</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:       #0f0f0f;
+  --surface:  #181818;
+  --surface2: #222;
+  --surface3: #2e2e2e;
+  --surface4: #3a3a3a;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #e8e8e8;
+  --muted:    #666;
+  --muted2:   #888;
+  --accent:   #f5a623;
+  --accent2:  #ffcd6a;
+  --danger:   #e53935;
+  --success:  #43a047;
+  --r:        10px;
+  --nav-h:    52px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Navbar ── */
+.top-nav {
+  background: rgba(15,15,15,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.brand {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.brand-icon {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #111;
+  font-size: 14px;
+}
+.nav-back {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  color: var(--muted2);
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  transition: color 120ms, background 120ms;
+  white-space: nowrap;
+}
+.nav-back:hover { color: var(--text); background: var(--surface3); }
+.nav-back.visible { display: flex; }
+
+.nav-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-wrap {
+  margin-left: auto;
+  position: relative;
+  flex: 1;
+  max-width: 260px;
+  min-width: 0;
+}
+.search-wrap i.bi-search {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 7px 32px 7px 32px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 150ms, background 150ms;
+}
+.search-input:focus { border-color: rgba(245,166,35,0.4); background: var(--surface3); }
+.search-input::placeholder { color: var(--muted); }
+.search-clear {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 2px 4px;
+  cursor: pointer;
+  display: none;
+}
+.search-clear.visible { display: block; }
+
+/* ── Tabs (Artistas / Favoritos) ── */
+.tabs-bar {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid transparent;
+  transition: color 120ms, border-color 120ms;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+/* ── Main layout ── */
+.main {
+  padding: 16px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ── Grid de tarjetas ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+@media (max-width: 480px) { .card-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; } }
+@media (min-width: 900px) { .card-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+
+.card-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 140ms, border-color 140ms, box-shadow 140ms;
+  position: relative;
+}
+.card-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--border2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.card-item:active { transform: translateY(0); }
+
+.card-thumb {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  display: block;
+  background: var(--surface2);
+}
+.card-thumb-placeholder {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 28px;
+}
+
+.card-info {
+  padding: 8px 10px;
+}
+.card-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-meta {
+  font-size: 11px;
+  color: var(--muted2);
+  margin-top: 2px;
+}
+
+/* Fav badge sobre la card */
+.fav-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: rgba(0,0,0,0.65);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+/* ── Estado vacío / loading ── */
+.state-msg {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted2);
+}
+.state-msg i { font-size: 36px; display: block; margin-bottom: 12px; }
+.state-msg p { font-size: 14px; }
+
+/* ── Lightbox / Visor ── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.97);
+  z-index: 9000;
+  display: none;
+  flex-direction: column;
+}
+.lightbox.open { display: flex; }
+
+.lb-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(15,15,15,0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.lb-title { flex: 1; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-counter { font-size: 12px; color: var(--muted2); white-space: nowrap; }
+.lb-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 120ms;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.lb-btn:hover { background: var(--surface3); }
+.lb-btn.fav-active { color: var(--accent); border-color: rgba(245,166,35,0.4); }
+
+.lb-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lb-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  transition: opacity 120ms;
+}
+.lb-img.loading { opacity: 0.3; }
+
+/* Nav arrows */
+.lb-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.55);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 120ms, opacity 120ms;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-arrow:hover { background: rgba(0,0,0,0.85); }
+.lb-arrow.prev { left: 10px; }
+.lb-arrow.next { right: 10px; }
+.lb-arrow:disabled { opacity: 0.2; pointer-events: none; }
+
+/* Touch zones (mobile) */
+.lb-tz { position: absolute; top: 0; bottom: 0; width: 35%; z-index: 4; }
+.lb-tz-prev { left: 0; }
+.lb-tz-next { right: 0; }
+
+/* Thumbnail strip */
+.lb-strip {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(10,10,10,0.95);
+  border-top: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface4) transparent;
+}
+.lb-strip::-webkit-scrollbar { height: 3px; }
+.lb-strip::-webkit-scrollbar-thumb { background: var(--surface4); border-radius: 3px; }
+
+.lb-thumb {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 100ms, border-color 100ms;
+}
+.lb-thumb.active { border-color: var(--accent); opacity: 1; }
+.lb-thumb:hover { opacity: 0.9; }
+
+/* GIF badge */
+.gif-badge {
+  position: absolute;
+  bottom: 8px; left: 8px;
+  background: rgba(245,166,35,0.85);
+  color: #111;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 6;
+  display: none;
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 0;
+  font-size: 12px;
+  color: var(--muted2);
+  flex-wrap: wrap;
+}
+.bc-sep { color: var(--muted); }
+.bc-link { color: var(--muted2); cursor: pointer; text-decoration: none; }
+.bc-link:hover { color: var(--accent); }
+.bc-current { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="top-nav">
+  <a href="/inicio" class="brand" title="Portada">
+    <span class="brand-icon"><i class="bi bi-images"></i></span>
+    <span class="brand-text">Galería</span>
+  </a>
+  <button class="nav-back" id="navBack" onclick="goBack()">
+    <i class="bi bi-chevron-left"></i> Volver
+  </button>
+  <span class="nav-title" id="navTitle"></span>
+  <div class="search-wrap" id="searchWrap">
+    <i class="bi bi-search"></i>
+    <input class="search-input" id="searchInput" type="search" placeholder="Buscar…" autocomplete="off" oninput="onSearch(this)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="bi bi-x"></i></button>
+  </div>
+</nav>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar" id="tabsBar">
+  <button class="tab-btn active" onclick="setTab('artistas')"><i class="bi bi-person-circle"></i> Artistas</button>
+  <button class="tab-btn" onclick="setTab('favoritos')"><i class="bi bi-star-fill"></i> Favoritos</button>
+</div>
+
+<!-- ── Breadcrumb ── -->
+<div class="breadcrumb-bar" id="breadcrumb" style="display:none"></div>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div id="loadingState" class="state-msg">
+    <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite"></i>
+    <p>Cargando…</p>
+  </div>
+  <div class="card-grid" id="cardGrid" style="display:none"></div>
+  <div id="emptyState" class="state-msg" style="display:none">
+    <i class="bi bi-folder2-open"></i>
+    <p id="emptyMsg">No hay contenido disponible.</p>
+  </div>
+</div>
+
+<!-- ── Lightbox ── -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-header">
+    <button class="lb-btn" onclick="closeLightbox()"><i class="bi bi-x-lg"></i></button>
+    <span class="lb-title" id="lbTitle"></span>
+    <span class="lb-counter" id="lbCounter"></span>
+    <button class="lb-btn" id="lbSlideBtn" onclick="toggleSlideshow()" title="Presentación automática"><i class="bi bi-play-fill" id="lbSlideIcon"></i></button>
+    <button class="lb-btn" onclick="downloadCurrent()" title="Descargar imagen"><i class="bi bi-download"></i></button>
+    <button class="lb-btn" id="lbFsBtn" onclick="toggleFullscreen()"><i class="bi bi-fullscreen" id="lbFsIcon"></i></button>
+    <button class="lb-btn" id="lbFavBtn" onclick="toggleAlbumFav()"><i class="bi bi-star" id="lbFavIcon"></i> <span id="lbFavText">Fav</span></button>
+  </div>
+  <div class="lb-body" id="lbBody">
+    <button class="lb-arrow prev" id="lbPrev" onclick="lbNav(-1)"><i class="bi bi-chevron-left"></i></button>
+    <img class="lb-img" id="lbImg" alt="">
+    <button class="lb-arrow next" id="lbNext" onclick="lbNav(1)"><i class="bi bi-chevron-right"></i></button>
+    <div class="lb-tz lb-tz-prev" id="lbTzPrev"></div>
+    <div class="lb-tz lb-tz-next" id="lbTzNext"></div>
+    <span class="gif-badge" id="gifBadge">GIF</span>
+  </div>
+  <div class="lb-strip" id="lbStrip"></div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script src="/static/js/colecciones.js"></script>
+<script>
+// ── Estado global ──────────────────────────────────────────────────────────────
+const state = {
+  view: 'artistas',   // 'artistas' | 'albumes' | 'imagenes' | 'favoritos'
+  tab: 'artistas',
+  artista: null,
+  album: null,
+  artistas: [],
+  albumes: [],
+  imagenes: [],
+  favoritos: [],
+  searchQ: '',
+  isMobile: /Mobi|Android|iPhone/i.test(navigator.userAgent),
+};
+
+const lb = {
+  imgs: [],
+  idx: 0,
+  artista: null,
+  album: null,
+  isFav: false,
+  touchStartX: 0,
+};
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Enlace profundo desde /inicio: ?artista=X[&album=Y] abre directo ahí.
+  const sp = new URLSearchParams(location.search);
+  const artista = sp.get('artista'), album = sp.get('album');
+  if (artista && album)      loadImagenes(artista, album);
+  else if (artista)          loadAlbumes(artista);
+  else                       loadArtistas();
+  if (artista) history.replaceState(null, '', location.pathname);
+
+  setupLightboxTouch();
+
+  // Tras agregar álbumes seleccionados a una carpeta, recargar la vista de
+  // álbumes actual para que la insignia "en carpeta" aparezca al toque.
+  if (window.Colecciones) {
+    Colecciones.onAplicado(tipo => {
+      if (tipo === 'galeria' && state.view === 'albumes' && state.artista) {
+        loadAlbumes(state.artista);
+      }
+    });
+  }
+});
+
+// ── Tabs ───────────────────────────────────────────────────────────────────────
+function setTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'artistas') || (i === 1 && tab === 'favoritos'));
+  });
+  document.getElementById('tabsBar').style.display = '';
+  document.getElementById('navBack').classList.remove('visible');
+  document.getElementById('breadcrumb').style.display = 'none';
+  document.getElementById('navTitle').textContent = '';
+  clearSearch();
+  if (tab === 'artistas') { state.view = 'artistas'; loadArtistas(); }
+  else { state.view = 'favoritos'; loadFavoritos(); }
+}
+
+// ── Carga de datos ─────────────────────────────────────────────────────────────
+async function loadArtistas() {
+  setLoading(true);
+  try {
+    const res = await fetch('/api/galeria/artistas');
+    const data = await res.json();
+    state.artistas = data.artistas || [];
+    renderCards(state.artistas, renderArtistaCard);
+  } catch { showEmpty('Error al cargar artistas.'); }
+  setLoading(false);
+}
+
+async function loadAlbumes(artista) {
+  state.artista = artista;
+  state.view = 'albumes';
+  updateNavAlbumes(artista);
+  setLoading(true);
+  try {
+    if (window.Colecciones) await Colecciones.fetch('galeria').catch(() => {});
+    const res = await fetch(`/api/galeria/${encodeURIComponent(artista)}`);
+    const data = await res.json();
+    state.albumes = data.albumes || [];
+    const filtered = renderCards(state.albumes, renderAlbumCard);
+    _wireAlbumSelection(filtered);
+  } catch { showEmpty('Error al cargar álbumes.'); }
+  setLoading(false);
+}
+
+async function loadImagenes(artista, album) {
+  state.artista = artista;
+  state.album = album;
+  state.view = 'imagenes';
+  updateNavImagenes(artista, album);
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/galeria/${encodeURIComponent(artista)}/${encodeURIComponent(album)}`);
+    const data = await res.json();
+    state.imagenes = data.imagenes || [];
+    renderImageGrid(state.imagenes);
+  } catch { showEmpty('Error al cargar imágenes.'); }
+  setLoading(false);
+}
+
+async function loadFavoritos() {
+  setLoading(true);
+  try {
+    const res = await fetch('/api/galeria/favoritos');
+    const data = await res.json();
+    state.favoritos = data.favoritos || [];
+    renderCards(state.favoritos, renderFavCard);
+  } catch { showEmpty('Error al cargar favoritos.'); }
+  setLoading(false);
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function renderCards(items, cardFn) {
+  const grid = document.getElementById('cardGrid');
+  const filtered = state.searchQ
+    ? items.filter(i => (i.nombre || '').toLowerCase().includes(state.searchQ))
+    : items;
+  if (!filtered.length) { showEmpty(); grid.style.display = 'none'; return filtered; }
+  grid.innerHTML = filtered.map((item, i) => cardFn(item, i)).join('');
+  grid.style.display = 'grid';
+  document.getElementById('emptyState').style.display = 'none';
+  return filtered;
+}
+
+// Carpetas: solo álbumes son "colección-ables" (no artistas ni favoritos).
+// item_id sigue el mismo esquema que _fav_key en routes/galeria.py:
+// "artista__album", o "artista" a secas para el álbum general (_General).
+function _wireAlbumSelection(albumes) {
+  if (!window.Colecciones || !albumes) return;
+  const cards = document.querySelectorAll('#cardGrid .card-item');
+  cards.forEach((card, i) => {
+    const al = albumes[i];
+    if (!al) return;
+    const itemId = (al.nombre && al.nombre !== '_General') ? `${al.artista}__${al.nombre}` : al.artista;
+    Colecciones.addMembershipBadge(card, 'galeria', itemId);
+    Colecciones.attachSelectable(card, 'galeria', itemId, () => loadImagenes(al.artista, al.nombre));
+  });
+}
+
+function renderArtistaCard(a, i = 99) {
+  const thumb = a.preview
+    ? `<img class="card-thumb" src="${a.preview}" loading="${i < 10 ? 'eager' : 'lazy'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const placeholder = `<div class="card-thumb-placeholder" ${a.preview ? 'style="display:none"' : ''}><i class="bi bi-person-circle"></i></div>`;
+  return `<div class="card-item" onclick="loadAlbumes('${esc(a.nombre)}')">
+    ${thumb}${placeholder}
+    <div class="card-info">
+      <div class="card-name">${esc(a.nombre)}</div>
+      <div class="card-meta">${a.albumes} álbum${a.albumes !== 1 ? 'es' : ''} · ${a.total_imagenes} imgs</div>
+    </div>
+  </div>`;
+}
+
+function renderAlbumCard(al, i = 99) {
+  const thumb = al.preview
+    ? `<img class="card-thumb" src="${al.preview}" loading="${i < 10 ? 'eager' : 'lazy'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const placeholder = `<div class="card-thumb-placeholder" ${al.preview ? 'style="display:none"' : ''}><i class="bi bi-images"></i></div>`;
+  return `<div class="card-item">
+    ${thumb}${placeholder}
+    <div class="card-info">
+      <div class="card-name">${esc(al.label || al.nombre)}</div>
+      <div class="card-meta">${al.total} imagen${al.total !== 1 ? 'es' : ''}</div>
+    </div>
+  </div>`;
+}
+
+function renderFavCard(fav, i = 99) {
+  const thumb = fav.preview
+    ? `<img class="card-thumb" src="${fav.preview}" loading="${i < 10 ? 'eager' : 'lazy'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : '';
+  const placeholder = `<div class="card-thumb-placeholder" ${fav.preview ? 'style="display:none"' : ''}><i class="bi bi-star-fill"></i></div>`;
+  return `<div class="card-item" onclick="loadImagenes('${esc(fav.artista)}','${esc(fav.album)}')">
+    <span class="fav-badge"><i class="bi bi-star-fill"></i></span>
+    ${thumb}${placeholder}
+    <div class="card-info">
+      <div class="card-name">${esc(fav.artista)}</div>
+      <div class="card-meta">${esc(fav.album !== '_General' ? fav.album : 'General')} · ${fav.total} imgs</div>
+    </div>
+  </div>`;
+}
+
+function renderImageGrid(imgs) {
+  const grid = document.getElementById('cardGrid');
+  if (!imgs.length) { showEmpty('No hay imágenes en este álbum.'); grid.style.display = 'none'; return; }
+  grid.innerHTML = imgs.map((url, i) => {
+    const isGif = url.toLowerCase().endsWith('.gif');
+    return `<div class="card-item" onclick="openLightbox(${i})" style="position:relative">
+      <img class="card-thumb" src="${url}" loading="${i < 16 ? 'eager' : 'lazy'}" style="aspect-ratio:1/1;object-fit:cover"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="card-thumb-placeholder" style="display:none;aspect-ratio:1/1"><i class="bi bi-image"></i></div>
+      ${isGif ? '<span style="position:absolute;top:5px;right:5px;background:rgba(245,166,35,0.9);color:#111;font-size:9px;font-weight:800;padding:2px 5px;border-radius:3px">GIF</span>' : ''}
+    </div>`;
+  }).join('');
+  grid.style.display = 'grid';
+  document.getElementById('emptyState').style.display = 'none';
+}
+
+// ── Lightbox ───────────────────────────────────────────────────────────────────
+async function openLightbox(idx) {
+  lb.imgs = state.imagenes;
+  lb.idx = idx;
+  lb.artista = state.artista;
+  lb.album = state.album;
+
+  // Verificar si es favorito
+  try {
+    const res = await fetch(`/api/galeria/check_favorito?artista=${encodeURIComponent(lb.artista)}&album=${encodeURIComponent(lb.album)}`);
+    const data = await res.json();
+    lb.isFav = data.is_favorite;
+  } catch { lb.isFav = false; }
+
+  updateFavBtn();
+  renderStrip();
+  lbGoTo(idx);
+
+  document.getElementById('lbTitle').textContent = `${lb.artista} — ${lb.album !== '_General' ? lb.album : 'General'}`;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  stopSlideshow();
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen();
+}
+
+// ── Slideshow (presentación automática) ────────────────────────────────────────
+let slideTimer = null;
+
+function toggleSlideshow() {
+  if (slideTimer) { stopSlideshow(); return; }
+  slideTimer = setInterval(() => {
+    if (lb.idx < lb.imgs.length - 1) lbGoTo(lb.idx + 1);
+    else stopSlideshow();   // fin del álbum
+  }, 3500);
+  document.getElementById('lbSlideIcon').className = 'bi bi-pause-fill';
+}
+
+function stopSlideshow() {
+  if (!slideTimer) return;
+  clearInterval(slideTimer);
+  slideTimer = null;
+  document.getElementById('lbSlideIcon').className = 'bi bi-play-fill';
+}
+
+// ── Descargar imagen actual ────────────────────────────────────────────────────
+function downloadCurrent() {
+  const url = lb.imgs[lb.idx];
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = decodeURIComponent(url.split('/').pop() || 'imagen');
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function lbGoTo(idx) {
+  if (idx < 0 || idx >= lb.imgs.length) return;
+  lb.idx = idx;
+  const url = lb.imgs[idx];
+  const img = document.getElementById('lbImg');
+  img.classList.add('loading');
+  img.src = url;
+  img.onload = () => img.classList.remove('loading');
+  img.onerror = () => img.classList.remove('loading');
+
+  // GIF badge
+  document.getElementById('gifBadge').style.display = url.toLowerCase().endsWith('.gif') ? 'block' : 'none';
+
+  // Counter
+  document.getElementById('lbCounter').textContent = `${idx + 1} / ${lb.imgs.length}`;
+
+  // Arrows
+  document.getElementById('lbPrev').disabled = idx === 0;
+  document.getElementById('lbNext').disabled = idx === lb.imgs.length - 1;
+
+  // Strip active
+  document.querySelectorAll('.lb-thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
+  // Scroll strip
+  const strip = document.getElementById('lbStrip');
+  const active = strip.children[idx];
+  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+  // Preload adjacent
+  [idx - 1, idx + 1].forEach(i => {
+    if (i >= 0 && i < lb.imgs.length) { const p = new Image(); p.src = lb.imgs[i]; }
+  });
+}
+
+function lbNav(dir) { lbGoTo(lb.idx + dir); }
+
+function renderStrip() {
+  const strip = document.getElementById('lbStrip');
+  strip.innerHTML = lb.imgs.map((url, i) =>
+    `<img class="lb-thumb ${i === lb.idx ? 'active' : ''}" src="${url}" loading="lazy" onclick="lbGoTo(${i})">`
+  ).join('');
+}
+
+async function toggleAlbumFav() {
+  try {
+    const res = await fetch('/api/galeria/toggle_favorito', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ artista: lb.artista, album: lb.album, is_favorite: lb.isFav }),
+    });
+    const data = await res.json();
+    if (data.success) { lb.isFav = data.is_favorite; updateFavBtn(); }
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function updateFavBtn() {
+  const icon = document.getElementById('lbFavIcon');
+  const text = document.getElementById('lbFavText');
+  const btn  = document.getElementById('lbFavBtn');
+  if (lb.isFav) {
+    icon.className = 'bi bi-star-fill';
+    text.textContent = 'Quitar';
+    btn.classList.add('fav-active');
+  } else {
+    icon.className = 'bi bi-star';
+    text.textContent = 'Fav';
+    btn.classList.remove('fav-active');
+  }
+}
+
+function toggleFullscreen() {
+  const lb = document.getElementById('lightbox');
+  if (!document.fullscreenElement) lb.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+  else document.exitFullscreen();
+}
+
+document.addEventListener('fullscreenchange', () => {
+  document.getElementById('lbFsIcon').className =
+    document.fullscreenElement ? 'bi bi-fullscreen-exit' : 'bi bi-fullscreen';
+});
+
+// Teclado
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  lbNav(-1);
+  if (e.key === 'ArrowRight') lbNav(1);
+  if (e.key === 'Escape') { if (document.fullscreenElement) document.exitFullscreen(); else closeLightbox(); }
+  if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+  if (e.key === ' ') { e.preventDefault(); toggleSlideshow(); }
+});
+
+// Touch swipe
+function setupLightboxTouch() {
+  const body = document.getElementById('lbBody');
+  body.addEventListener('touchstart', e => { lb.touchStartX = e.touches[0].clientX; }, { passive: true });
+  body.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - lb.touchStartX;
+    if (Math.abs(dx) > 50) lbNav(dx > 0 ? -1 : 1);
+  }, { passive: true });
+
+  // Touch zones (mobile)
+  document.getElementById('lbTzPrev').addEventListener('click', () => lbNav(-1));
+  document.getElementById('lbTzNext').addEventListener('click', () => lbNav(1));
+}
+
+// ── Navegación ─────────────────────────────────────────────────────────────────
+function goBack() {
+  if (state.view === 'imagenes') {
+    loadAlbumes(state.artista);
+  } else if (state.view === 'albumes') {
+    state.view = 'artistas';
+    document.getElementById('navBack').classList.remove('visible');
+    document.getElementById('tabsBar').style.display = '';
+    document.getElementById('breadcrumb').style.display = 'none';
+    document.getElementById('navTitle').textContent = '';
+    clearSearch();
+    loadArtistas();
+  }
+}
+
+function updateNavAlbumes(artista) {
+  document.getElementById('tabsBar').style.display = 'none';
+  document.getElementById('navBack').classList.add('visible');
+  document.getElementById('navTitle').textContent = artista;
+  updateBreadcrumb([
+    { label: 'Artistas', action: () => setTab('artistas') },
+    { label: artista, active: true },
+  ]);
+}
+
+function updateNavImagenes(artista, album) {
+  document.getElementById('tabsBar').style.display = 'none';
+  document.getElementById('navBack').classList.add('visible');
+  document.getElementById('navTitle').textContent = album !== '_General' ? album : 'General';
+  updateBreadcrumb([
+    { label: 'Artistas', action: () => setTab('artistas') },
+    { label: artista, action: () => loadAlbumes(artista) },
+    { label: album !== '_General' ? album : 'General', active: true },
+  ]);
+}
+
+function updateBreadcrumb(crumbs) {
+  const bc = document.getElementById('breadcrumb');
+  bc.style.display = 'flex';
+  bc.innerHTML = crumbs.map((c, i) => {
+    const sep = i < crumbs.length - 1 ? '<span class="bc-sep"><i class="bi bi-chevron-right"></i></span>' : '';
+    if (c.active) return `<span class="bc-current">${esc(c.label)}</span>${sep}`;
+    return `<span class="bc-link" onclick="(${c.action})()">${esc(c.label)}</span>${sep}`;
+  }).join('');
+}
+
+// ── Búsqueda ───────────────────────────────────────────────────────────────────
+function onSearch(input) {
+  const q = input.value.trim().toLowerCase();
+  state.searchQ = q;
+  document.getElementById('searchClear').classList.toggle('visible', !!q);
+  refreshCurrentView();
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  state.searchQ = '';
+  refreshCurrentView();
+}
+
+function refreshCurrentView() {
+  if (state.view === 'artistas') renderCards(state.artistas, renderArtistaCard);
+  else if (state.view === 'albumes') renderCards(state.albumes, renderAlbumCard);
+  else if (state.view === 'favoritos') renderCards(state.favoritos, renderFavCard);
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────────
+function setLoading(on) {
+  document.getElementById('loadingState').style.display = on ? 'block' : 'none';
+  if (on) { document.getElementById('cardGrid').style.display = 'none'; document.getElementById('emptyState').style.display = 'none'; }
+}
+
+function showEmpty(msg = 'No hay contenido disponible.') {
+  document.getElementById('emptyMsg').textContent = msg;
+  document.getElementById('emptyState').style.display = 'block';
+  document.getElementById('cardGrid').style.display = 'none';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+<script>
+// PWA: el service worker cachea el shell y las miniaturas ya vistas.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

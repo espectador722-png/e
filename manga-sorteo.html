@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sorteo de Manga</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+:root {
+  --bg:       #0f0f0f;
+  --surface:  #181818;
+  --surface2: #222;
+  --surface3: #2e2e2e;
+  --border:   rgba(255,255,255,0.08);
+  --text:     #e8e8e8;
+  --muted:    #888;
+  --accent:   #f5a623;
+  --danger:   #e53935;
+  --success:  #43a047;
+  --r:        12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.topbar {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+.topbar a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.topbar a:hover { color: var(--text); }
+.topbar h1 { font-size: 16px; font-weight: 600; }
+
+.wrap {
+  width: 100%;
+  max-width: 720px;
+  padding: 0 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filtros button {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.filtros button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1300;
+  font-weight: 600;
+}
+.filtros button:not(.active):hover { color: var(--text); border-color: var(--border); background: var(--surface3); }
+
+#historial-acciones button {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.preview-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+.preview-box .badge-sec {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0,0,0,.65);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.preview-box .loader {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.info h2 {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.info .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.info .meta span {
+  background: var(--surface2);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tags span {
+  background: var(--surface3);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.acciones button {
+  border: none;
+  border-radius: var(--r);
+  padding: 14px 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform .1s, filter .15s;
+}
+.acciones button:active { transform: scale(0.96); }
+.acciones button i { font-size: 20px; }
+.btn-mirar   { background: var(--surface3); color: var(--text); }
+.btn-mirar:hover   { filter: brightness(1.15); }
+.btn-conservar { background: var(--success); color: #fff; }
+.btn-conservar:hover { filter: brightness(1.1); }
+.btn-borrar  { background: var(--danger); color: #fff; }
+.btn-borrar:hover  { filter: brightness(1.1); }
+
+.contador {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.estado-vacio, .estado-cargando {
+  text-align: center;
+  color: var(--muted);
+  padding: 60px 20px;
+  font-size: 14px;
+}
+
+/* Visor de páginas (modo "mirar") */
+.visor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.92);
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+}
+.visor-overlay.open { display: flex; }
+.visor-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.visor-top button {
+  background: var(--surface2);
+  border: none;
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.visor-img-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.visor-img-wrap img {
+  max-width: min(90%, 380px);
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  display: block;
+  cursor: zoom-in;
+}
+.visor-img-wrap img.zoomed {
+  max-width: none;
+  max-height: none;
+  cursor: zoom-out;
+}
+.visor-nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+}
+.visor-nav button {
+  background: var(--surface2);
+  border: none;
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.visor-nav button:disabled { opacity: .4; cursor: default; }
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface3);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  transition: all .25s;
+  z-index: 60;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/manga"><i class="bi bi-arrow-left"></i> Volver a Manga</a>
+  <h1><i class="bi bi-shuffle"></i> Sorteo</h1>
+  <span style="width:90px"></span>
+</div>
+
+<div class="wrap">
+  <div class="filtros" id="filtros">
+    <button data-sec="" class="active">Todas</button>
+    <button data-sec="largos">Largos</button>
+    <button data-sec="cortos">Cortos</button>
+    <button data-sec="favoritos">Favoritos</button>
+  </div>
+
+  <div class="filtros" id="historial-acciones">
+    <button id="btn-deshacer" onclick="deshacerUltimo(1)" title="Vuelve a mostrar el último manga conservado"><i class="bi bi-arrow-counterclockwise"></i> Deshacer último</button>
+    <button id="btn-deshacer2" onclick="deshacerUltimo(2)" title="Vuelve a mostrar los últimos 2 conservados"><i class="bi bi-arrow-counterclockwise"></i> Deshacer últimos 2</button>
+    <button onclick="resetearHistorial()" title="Borra todo el historial de conservados"><i class="bi bi-trash3"></i> Resetear historial</button>
+    <span id="historial-contador" style="align-self:center;color:var(--muted);font-size:12.5px"></span>
+  </div>
+
+  <div id="contenido">
+    <div class="estado-cargando">Cargando…</div>
+  </div>
+
+  <div class="contador" id="contador"></div>
+</div>
+
+<div class="visor-overlay" id="visor">
+  <div class="visor-top">
+    <span id="visorNombre"></span>
+    <button onclick="cerrarVisor()"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div class="visor-img-wrap">
+    <img id="visorImg" alt="" onclick="toggleZoomVisor()">
+  </div>
+  <div class="visor-nav">
+    <button id="visorPrev" onclick="visorMover(-1)"><i class="bi bi-chevron-left"></i> Anterior</button>
+    <span id="visorContador" style="align-self:center;color:var(--muted);font-size:13px"></span>
+    <button id="visorNext" onclick="visorMover(1)">Siguiente <i class="bi bi-chevron-right"></i></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const state = {
+  seccion: '',
+  actual: null,       // manga actual { nombre, tipo, preview, ... }
+  vistos: [],          // nombres ya mostrados en esta sesión (para no repetir)
+  visorPaginas: [],
+  visorIndex: 0,
+};
+
+document.getElementById('filtros').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-sec]');
+  if (!btn) return;
+  document.querySelectorAll('#filtros button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.seccion = btn.dataset.sec;
+  state.vistos = [];
+  cargarSiguiente();
+});
+
+async function cargarSiguiente() {
+  const cont = document.getElementById('contenido');
+  cont.innerHTML = '<div class="estado-cargando">Buscando manga al azar…</div>';
+  document.getElementById('contador').textContent = '';
+
+  const params = new URLSearchParams();
+  if (state.seccion) params.set('section', state.seccion);
+  if (state.vistos.length) params.set('exclude', state.vistos.join(','));
+
+  try {
+    const res = await fetch(`/api/manga/random?${params}`);
+    const data = await res.json();
+
+    if (!data.manga) {
+      cont.innerHTML = '<div class="estado-vacio"><i class="bi bi-inboxes" style="font-size:32px"></i><br><br>No hay mangas en esta sección.</div>';
+      return;
+    }
+
+    state.actual = data.manga;
+    state.vistos.push(data.manga.nombre.toLowerCase());
+    renderCard(data.manga);
+    document.getElementById('contador').textContent = `${data.total} manga(s) en esta selección`;
+  } catch (e) {
+    cont.innerHTML = '<div class="estado-vacio">Error al cargar. <a href="#" onclick="cargarSiguiente();return false">Reintentar</a></div>';
+  }
+}
+
+function renderCard(m) {
+  const cont = document.getElementById('contenido');
+  const tags = (m.tags || []).slice(0, 8);
+  cont.innerHTML = `
+    <div class="card">
+      <div class="preview-box">
+        <img src="${m.preview}" alt="${escapeHtml(m.nombre)}" onclick="abrirVisor()">
+        <span class="badge-sec">${m.tipo}</span>
+      </div>
+      <div class="info">
+        <h2>${escapeHtml(m.title || m.nombre)}</h2>
+        <div class="meta">
+          <span><i class="bi bi-file-earmark-image"></i> ${m.paginas_total || '?'} páginas</span>
+          ${m.language ? `<span>${escapeHtml(m.language)}</span>` : ''}
+          ${m.date ? `<span>${escapeHtml(m.date)}</span>` : ''}
+        </div>
+        ${tags.length ? `<div class="tags">${tags.map(t => `<span>${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>
+    <div class="acciones">
+      <button class="btn-mirar" onclick="abrirVisor()"><i class="bi bi-eye"></i> Mirar</button>
+      <button class="btn-conservar" onclick="conservar()"><i class="bi bi-hand-thumbs-up"></i> Conservar</button>
+      <button class="btn-borrar" onclick="confirmarBorrar()"><i class="bi bi-trash3"></i> Borrar</button>
+    </div>
+  `;
+}
+
+async function conservar() {
+  const m = state.actual;
+  if (!m) return;
+  try {
+    await fetch('/api/manga/sorteo/historial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: m.nombre, tipo: m.tipo }),
+    });
+  } catch (e) { /* si falla el registro, igual se sigue — no bloquea el flujo */ }
+  mostrarToast('Conservado — siguiente');
+  actualizarContadorHistorial();
+  cargarSiguiente();
+}
+
+async function deshacerUltimo(cantidad) {
+  try {
+    const res = await fetch('/api/manga/sorteo/historial/undo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cantidad }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const nombres = (data.deshechos || []).map(h => h.nombre).join(', ');
+      mostrarToast(nombres ? `Deshecho: ${nombres}` : 'No había nada que deshacer');
+      actualizarContadorHistorial();
+    }
+  } catch (e) {
+    mostrarToast('Error al deshacer');
+  }
+}
+
+async function resetearHistorial() {
+  if (!confirm('¿Borrar todo el historial de mangas conservados? Volverán a aparecer en el sorteo.')) return;
+  try {
+    await fetch('/api/manga/sorteo/historial/reset', { method: 'POST' });
+    mostrarToast('Historial reseteado');
+    actualizarContadorHistorial();
+  } catch (e) {
+    mostrarToast('Error al resetear');
+  }
+}
+
+async function actualizarContadorHistorial() {
+  try {
+    const res = await fetch('/api/manga/sorteo/historial');
+    const data = await res.json();
+    document.getElementById('historial-contador').textContent = `${data.total} conservado(s) en el historial`;
+  } catch (e) { /* silencioso */ }
+}
+
+async function confirmarBorrar() {
+  if (!state.actual) return;
+  const m = state.actual;
+  if (!confirm(`¿Borrar definitivamente "${m.title || m.nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
+
+  const previewFile = m.preview.split('/').pop();
+  try {
+    const res = await fetch('/delete_manga', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preview_name: previewFile,
+        manga_name:   m.nombre,
+        categoria:    m.tipo,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      mostrarToast('Borrado');
+      state.vistos = state.vistos.filter(n => n !== m.nombre.toLowerCase());
+      cargarSiguiente();
+    } else {
+      mostrarToast(data.error || 'No se pudo borrar');
+    }
+  } catch (e) {
+    mostrarToast('Error al borrar');
+  }
+}
+
+// ── Visor de páginas (mirar antes de decidir) ──────────────────────────────
+async function abrirVisor() {
+  const m = state.actual;
+  if (!m) return;
+  const previewFile = m.preview.split('/').pop();
+  document.getElementById('visorNombre').textContent = m.title || m.nombre;
+  document.getElementById('visor').classList.add('open');
+  document.getElementById('visorImg').src = '';
+  document.getElementById('visorContador').textContent = 'Cargando…';
+
+  try {
+    const res = await fetch(`/get_manga_info/${m.tipo}/${encodeURIComponent(previewFile)}`);
+    const data = await res.json();
+    state.visorPaginas = data.paginas_list || [];
+    state.visorIndex = 0;
+    mostrarPaginaVisor();
+  } catch (e) {
+    document.getElementById('visorContador').textContent = 'Error al cargar páginas';
+  }
+}
+
+function mostrarPaginaVisor() {
+  const m = state.actual;
+  const pags = state.visorPaginas;
+  if (!pags.length) {
+    document.getElementById('visorContador').textContent = 'Sin páginas';
+    return;
+  }
+  const archivo = pags[state.visorIndex];
+  const img = document.getElementById('visorImg');
+  img.src = `/get_manga_page/${m.tipo}/${encodeURIComponent(m.nombre)}/${encodeURIComponent(archivo)}`;
+  img.classList.remove('zoomed');
+  document.getElementById('visorContador').textContent = `${state.visorIndex + 1} / ${pags.length}`;
+  document.getElementById('visorPrev').disabled = state.visorIndex === 0;
+  document.getElementById('visorNext').disabled = state.visorIndex === pags.length - 1;
+}
+
+function toggleZoomVisor() {
+  document.getElementById('visorImg').classList.toggle('zoomed');
+}
+
+function visorMover(delta) {
+  const nuevo = state.visorIndex + delta;
+  if (nuevo < 0 || nuevo >= state.visorPaginas.length) return;
+  state.visorIndex = nuevo;
+  mostrarPaginaVisor();
+}
+
+function cerrarVisor() {
+  document.getElementById('visor').classList.remove('open');
+}
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('visor').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') visorMover(-1);
+  else if (e.key === 'ArrowRight') visorMover(1);
+  else if (e.key === 'Escape') cerrarVisor();
+});
+
+// ── Utils ───────────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+let toastTimer = null;
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+cargarSiguiente();
+actualizarContadorHistorial();
+</script>
+
+</body>
+</html>

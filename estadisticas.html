@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Estadísticas</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root {
+  --bg:       #0f0f0f;
+  --surface:  #181818;
+  --surface2: #222;
+  --surface3: #2e2e2e;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --text:     #e8e8e8;
+  --muted:    #666;
+  --muted2:   #888;
+  --accent:   #f5a623;
+  --r:        10px;
+  --nav-h:    54px;
+  --c-manga:     #ffcd6a;
+  --c-hentai:    #f48fb1;
+  --c-animacion: #80cbc4;
+  --c-xxx:       #ef9a9a;
+  --c-galeria:   #b39ddb;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px; min-height: 100dvh; -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; padding-bottom: 40px;
+}
+a { color: inherit; text-decoration: none; }
+
+.top-nav {
+  background: rgba(15,15,15,0.97); backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  min-height: var(--nav-h); display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; position: sticky; top: 0; z-index: 200;
+}
+.brand { font-size: 15px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.brand-icon {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 7px;
+  display: flex; align-items: center; justify-content: center; color: #111; font-size: 14px;
+}
+.nav-spacer { margin-left: auto; }
+.refresh-btn {
+  background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2);
+  border-radius: 999px; padding: 7px 14px; font-size: 13px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; transition: .15s; font-family: inherit;
+}
+.refresh-btn:hover { color: var(--text); border-color: var(--accent); }
+.refresh-btn.spin i { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 18px 14px 0; }
+
+/* ── Resumen grande ── */
+.hero { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 26px; }
+.hero-num { flex: 1; min-width: 140px; }
+.hero-num .v { font-size: 30px; font-weight: 700; color: #fff; line-height: 1.1; }
+.hero-num .l { font-size: 12px; color: var(--muted2); margin-top: 4px; }
+.hero-num .v i { color: var(--accent); font-size: 22px; margin-right: 4px; }
+
+/* ── Bloques ── */
+.bloque { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+.bloque h2 { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 7px; margin-bottom: 14px; letter-spacing: .2px; }
+.bloque h2 i { color: var(--accent); }
+
+/* ── Barra apilada de almacenamiento ── */
+.stackbar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; background: var(--surface2); margin-bottom: 12px; }
+.stackbar > span { height: 100%; transition: width .4s ease; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted2); }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.legend-item b { color: var(--text); font-weight: 600; }
+
+/* ── Grid de cards por tipo ── */
+.grid-tipos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.card-tipo { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.card-tipo .th { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 600; font-size: 13px; }
+.card-tipo .th i { font-size: 15px; }
+.card-tipo .metric { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted2); padding: 3px 0; }
+.card-tipo .metric b { color: var(--text); font-weight: 600; }
+
+/* ── Donut ── */
+.donut-row { display: flex; align-items: center; gap: 16px; }
+.donut {
+  width: 92px; height: 92px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--surface3) 0deg 360deg);
+}
+.donut::after { content: ''; width: 60px; height: 60px; border-radius: 50%; background: var(--surface); }
+.donut-legend { flex: 1; }
+.donut-legend .row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted2); padding: 3px 0; }
+.donut-legend .row b { color: var(--text); }
+
+/* ── Mini barras horizontales ── */
+.hbar-row { margin-bottom: 10px; }
+.hbar-row .hb-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted2); margin-bottom: 4px; }
+.hbar-row .hb-label b { color: var(--text); font-weight: 600; }
+.hbar-track { height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+.hbar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width .4s ease; }
+
+.state-msg { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 13px; }
+.state-msg .spin-big { width: 30px; height: 30px; border: 3px solid var(--surface3); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <a href="/inicio" class="brand" title="Volver a Inicio">
+    <span class="brand-icon"><i class="bi bi-bar-chart-fill"></i></span>
+    <span>Estadísticas</span>
+  </a>
+  <div class="nav-spacer"></div>
+  <button class="refresh-btn" id="refreshBtn" onclick="cargar(true)">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+  </button>
+</div>
+
+<div class="wrap" id="wrap">
+  <div class="state-msg" id="loading"><div class="spin-big"></div>Calculando estadísticas…</div>
+  <div id="contenido" style="display:none"></div>
+</div>
+
+<script>
+const ETIQUETAS = { manga: 'Manga', hentai: 'Hentai', animacion: 'Animación', xxx: 'XXX', galeria: 'Galería' };
+const ICONOS    = { manga: 'bi-book-half', hentai: 'bi-collection-play', animacion: 'bi-film', xxx: 'bi-play-circle', galeria: 'bi-images', subtitulos: 'bi-badge-cc' };
+const COLORES   = { manga: 'var(--c-manga)', hentai: 'var(--c-hentai)', animacion: 'var(--c-animacion)', xxx: 'var(--c-xxx)', galeria: 'var(--c-galeria)', subtitulos: 'var(--accent)' };
+const ORDEN     = ['manga', 'hentai', 'animacion', 'xxx', 'galeria'];
+
+function bytes(n) {
+  if (!n) return '0 B';
+  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
+}
+function esc(s) { return (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function cargar(forzar) {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spin');
+  try {
+    const [stats, indice] = await Promise.all([
+      fetch('/api/stats' + (forzar ? '?refresh=1' : '')).then(r => r.json()),
+      fetch('/api/indice/estado').then(r => r.json()),
+    ]);
+    pintar(stats, indice);
+  } catch (e) {
+    document.getElementById('loading').innerHTML = '⚠ No se pudieron cargar las estadísticas.';
+  }
+  btn.classList.remove('spin');
+}
+
+function pintar(stats, indice) {
+  const porTipo = indice?.resumen?.por_tipo || {};
+  const totalBytes = indice?.resumen?.bytes || 0;
+  const totalItems = indice?.resumen?.total || 0;
+
+  document.getElementById('loading').style.display = 'none';
+  const cont = document.getElementById('contenido');
+  cont.style.display = 'block';
+
+  // ── Hero ──
+  const hero = `
+    <div class="hero">
+      <div class="hero-num"><div class="v"><i class="bi bi-collection"></i>${totalItems.toLocaleString('es')}</div><div class="l">Ítems totales</div></div>
+      <div class="hero-num"><div class="v"><i class="bi bi-hdd"></i>${bytes(totalBytes)}</div><div class="l">Espacio ocupado</div></div>
+      <div class="hero-num"><div class="v"><i class="bi bi-book-half"></i>${(stats.manga.total || 0).toLocaleString('es')}</div><div class="l">Mangas</div></div>
+      <div class="hero-num"><div class="v"><i class="bi bi-play-circle"></i>${(stats.hentai.total_videos + stats.animaciones.videos + stats.xxx.videos).toLocaleString('es')}</div><div class="l">Videos</div></div>
+    </div>`;
+
+  // ── Barra de almacenamiento por tipo ──
+  const stackSegments = ORDEN.map(t => {
+    const b = porTipo[t]?.bytes || 0;
+    const pct = totalBytes ? (b / totalBytes * 100) : 0;
+    return { t, b, pct };
+  });
+  const stackbar = `
+    <div class="bloque">
+      <h2><i class="bi bi-pie-chart-fill"></i> Almacenamiento por tipo</h2>
+      <div class="stackbar">${stackSegments.map(s => s.pct > 0
+        ? `<span style="width:${s.pct}%;background:${COLORES[s.t]}" title="${ETIQUETAS[s.t]}: ${bytes(s.b)}"></span>` : '').join('')}</div>
+      <div class="legend">${stackSegments.map(s => `
+        <div class="legend-item"><span class="legend-dot" style="background:${COLORES[s.t]}"></span>
+          ${ETIQUETAS[s.t]} <b>${bytes(s.b)}</b> (${s.pct.toFixed(1)}%)</div>`).join('')}</div>
+    </div>`;
+
+  // ── Donut de tags de manga ──
+  const conTags = stats.manga.con_tags || 0;
+  const sinTags = stats.manga.sin_tags || 0;
+  const totalManga = conTags + sinTags || 1;
+  const pctCon = conTags / totalManga * 360;
+  const donutTags = `
+    <div class="donut-row">
+      <div class="donut" style="background:conic-gradient(var(--accent) 0deg ${pctCon}deg, var(--surface3) ${pctCon}deg 360deg)"></div>
+      <div class="donut-legend">
+        <div class="row"><span class="legend-dot" style="background:var(--accent)"></span>Con tags <b>${conTags}</b></div>
+        <div class="row"><span class="legend-dot" style="background:var(--surface3)"></span>Sin tags <b>${sinTags}</b></div>
+        <div class="row"><span class="legend-dot" style="background:transparent"></span>En progreso <b>${stats.manga.en_progreso || 0}</b></div>
+      </div>
+    </div>`;
+
+  // ── Cards por tipo ──
+  const cardManga = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.manga}" style="color:${COLORES.manga}"></i> Manga</div>
+      <div class="metric"><span>Favoritos</span><b>${stats.manga.favoritos}</b></div>
+      <div class="metric"><span>Largos</span><b>${stats.manga.largos}</b></div>
+      <div class="metric"><span>Cortos</span><b>${stats.manga.cortos}</b></div>
+      <div class="metric"><span>Imágenes totales</span><b>${(stats.manga.total_imagenes || 0).toLocaleString('es')}</b></div>
+    </div>`;
+  const cardHentai = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.hentai}" style="color:${COLORES.hentai}"></i> Hentai</div>
+      <div class="metric"><span>Largos</span><b>${stats.hentai.largos}</b></div>
+      <div class="metric"><span>Cortos</span><b>${stats.hentai.cortos}</b></div>
+      <div class="metric"><span>Favoritos</span><b>${stats.hentai.favoritos}</b></div>
+      <div class="metric"><span>Videos totales</span><b>${stats.hentai.total_videos}</b></div>
+    </div>`;
+  const cardAnim = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.animacion}" style="color:${COLORES.animacion}"></i> Animación</div>
+      <div class="metric"><span>Artistas</span><b>${stats.animaciones.artistas}</b></div>
+      <div class="metric"><span>Animaciones</span><b>${stats.animaciones.animaciones}</b></div>
+      <div class="metric"><span>Videos totales</span><b>${stats.animaciones.videos}</b></div>
+    </div>`;
+  const cardXXX = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.xxx}" style="color:${COLORES.xxx}"></i> XXX</div>
+      <div class="metric"><span>Categorías</span><b>${stats.xxx.categorias}</b></div>
+      <div class="metric"><span>Favoritos</span><b>${stats.xxx.favoritos}</b></div>
+      <div class="metric"><span>Videos totales</span><b>${stats.xxx.videos}</b></div>
+    </div>`;
+  const cardGaleria = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.galeria}" style="color:${COLORES.galeria}"></i> Galería</div>
+      <div class="metric"><span>Artistas</span><b>${stats.galeria.artistas}</b></div>
+      <div class="metric"><span>Álbumes</span><b>${stats.galeria.albumes}</b></div>
+      <div class="metric"><span>Imágenes totales</span><b>${(stats.galeria.imagenes || 0).toLocaleString('es')}</b></div>
+    </div>`;
+  const cardSubs = `
+    <div class="card-tipo">
+      <div class="th"><i class="bi ${ICONOS.subtitulos}" style="color:${COLORES.subtitulos}"></i> Subtítulos</div>
+      <div class="metric"><span>Traducidos</span><b>${(stats.subtitulos?.traducidos || 0).toLocaleString('es')}</b></div>
+      <div class="metric"><span>Faltan</span><b>${(stats.subtitulos?.faltan || 0).toLocaleString('es')}</b></div>
+      <div class="metric"><span>Sin voz (no aplica)</span><b>${(stats.subtitulos?.sin_audio || 0).toLocaleString('es')}</b></div>
+    </div>`;
+
+  cont.innerHTML = hero + stackbar + `
+    <div class="bloque">
+      <h2><i class="bi bi-tags-fill"></i> Progreso de organización — Manga</h2>
+      ${donutTags}
+    </div>
+    <div class="bloque">
+      <h2><i class="bi bi-grid-fill"></i> Detalle por sección</h2>
+      <div class="grid-tipos">${cardManga}${cardHentai}${cardAnim}${cardXXX}${cardGaleria}${cardSubs}</div>
+    </div>
+    <div class="bloque" style="text-align:center;color:var(--muted);font-size:11.5px">
+      Generado ${new Date(stats.generado_en).toLocaleString('es')}
+    </div>`;
+}
+
+cargar(false);
+</script>
+</body>
+</html>

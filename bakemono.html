@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bakemono</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root {
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2e2e2e;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e8e8; --muted:#777; --muted2:#999; --accent:#f5a623; --accent2:#ffcd6a;
+  --r:10px; --nav-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+.top-nav{background:rgba(15,15,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);min-height:var(--nav-h);display:flex;align-items:center;padding:0 12px;gap:8px;position:sticky;top:0;z-index:200;overflow-x:auto;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.brand{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#111;font-size:15px;flex-shrink:0}
+.nav-link-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;white-space:nowrap;font-family:inherit}
+.nav-link-btn:hover{color:var(--text);border-color:var(--accent)}
+.nav-spacer{margin-left:auto}
+@media (max-width:480px){.brand-text{display:none}.nav-link-btn{padding:6px 10px;font-size:12px}}
+
+.wrap{max-width:1300px;margin:0 auto;padding:16px 14px}
+
+/* ── Panel de configuración ── */
+.setup{background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:22px;max-width:560px;margin:40px auto}
+.setup h2{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.setup h2 i{color:var(--accent)}
+.setup p{color:var(--muted2);font-size:13px;line-height:1.6;margin-bottom:10px}
+.setup ol{color:var(--muted2);font-size:13px;line-height:1.8;margin:10px 0 16px 20px}
+.setup code{background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--accent2)}
+.setup textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:10px 12px;font-size:12px;font-family:monospace;min-height:80px;resize:vertical;outline:none}
+.setup textarea:focus{border-color:var(--accent)}
+.setup .btn-save{margin-top:12px;background:var(--accent);border:none;color:#111;font-weight:600;border-radius:8px;padding:9px 18px;font-size:13px;cursor:pointer}
+.setup .btn-save:hover{filter:brightness(1.1)}
+.setup .msg{font-size:12px;margin-top:8px}
+.setup .msg.err{color:#ef7b78}
+.setup .msg.ok{color:#7cc47f}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{background:rgba(245,166,35,.14);border-color:rgba(245,166,35,.45);color:var(--accent);font-weight:600}
+
+/* ── Grid de favoritos ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.grid.creators{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.creator-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 10px;text-align:center;transition:.15s}
+.creator-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.creator-card img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--surface3);margin-bottom:8px}
+.creator-card .cn{font-size:12.5px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.creator-card .cs{font-size:10px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .thumb{aspect-ratio:4/3;background:var(--surface3) center/cover no-repeat;position:relative}
+.card .body{padding:8px 9px 10px}
+.card .t{font-size:12.5px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.card .meta{font-size:10.5px;color:var(--muted2);margin-top:4px}
+.state{padding:40px 10px;text-align:center;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.pager button{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.spin{width:26px;height:26px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Modal de detalle ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 14px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal-c{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:760px;width:100%;overflow:hidden}
+.modal-h{padding:16px;border-bottom:1px solid var(--border);position:relative}
+.modal-h h2{font-size:17px;font-weight:700}
+.modal-h .creador{font-size:12px;color:var(--muted2);margin-top:3px}
+.modal-b{padding:16px;max-height:70vh;overflow-y:auto}
+.sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:14px 0 8px}
+.sec-title:first-child{margin-top:0}
+.desc-box{font-size:12.5px;color:#bbb;line-height:1.6;max-height:180px;overflow-y:auto;background:var(--surface2);border-radius:8px;padding:10px 12px}
+.desc-box a{color:var(--accent2);text-decoration:underline}
+.file-list{display:flex;flex-direction:column;gap:6px}
+.file-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.file-row .nom{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-row button, .file-row a.btn{background:var(--accent);border:none;color:#111;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.file-row a.btn{background:var(--surface3);color:var(--text)}
+.file-row button:hover, .file-row a.btn:hover{filter:brightness(1.1)}
+.file-row button:disabled{opacity:.5;cursor:not-allowed}
+.empty-hint{font-size:12px;color:var(--muted);text-align:center;padding:16px}
+.modal-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+.source-link{font-size:12px;color:var(--muted2);margin-top:14px;display:block}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── Panel de cola flotante ── */
+.cola-panel{position:fixed;bottom:16px;right:16px;width:320px;max-height:60vh;background:var(--surface);border:1px solid var(--border2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:400;display:none;flex-direction:column;overflow:hidden}
+.cola-panel.show{display:flex}
+.cola-h{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.cola-h .cnt{color:var(--muted2);font-weight:400}
+.cola-h button{margin-left:auto;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px}
+.cola-list{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.cola-job{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11.5px}
+.cola-job .jt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cola-job .jsub{color:var(--muted2);margin:3px 0 5px;display:flex;justify-content:space-between}
+.cola-job .jbar{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.cola-job .jfill{height:100%;background:var(--accent);transition:width .3s}
+.cola-job.error .jfill{background:#e53935}
+.cola-job .jerr{color:#ef7b78;font-size:10.5px;margin-top:4px;word-break:break-word}
+.cola-job .jretry{margin-top:6px;width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
+.cola-toggle{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#111;border:none;border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;z-index:399;display:none;align-items:center;gap:6px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.cola-toggle.show{display:inline-flex}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-car-front-fill"></i></div><span class="brand-text">Bakemono</span></div>
+  <div class="nav-spacer"></div>
+  <button class="nav-link-btn" onclick="location.href='/inicio'"><i class="bi bi-house-door"></i> Inicio</button>
+  <button class="nav-link-btn" onclick="mostrarSetup()"><i class="bi bi-gear"></i> Sesión</button>
+</div>
+
+<div class="wrap" id="wrap">
+  <div class="state" id="loading"><div class="spin"></div></div>
+</div>
+
+<!-- Modal de detalle -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-c">
+    <div class="modal-h">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+      <h2 id="mTitulo"></h2>
+      <div class="creador" id="mCreador"></div>
+    </div>
+    <div class="modal-b" id="mBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<button class="cola-toggle" id="colaToggle" onclick="toggleColaPanel()"><i class="bi bi-list-ul"></i> Cola <span id="colaBadge"></span></button>
+<div class="cola-panel" id="colaPanel">
+  <div class="cola-h"><i class="bi bi-download"></i> Cola de descargas <span class="cnt" id="colaCnt"></span>
+    <button onclick="toggleColaPanel()">✕</button></div>
+  <div class="cola-list" id="colaList"></div>
+</div>
+
+<script>
+let PAGE=1, HAS_NEXT=false, TAB='posts';
+
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
+
+async function init(){
+  try{
+    const r=await fetch('/api/bakemono/settings');
+    const d=await r.json();
+    if(!d.configurado){ mostrarSetup(); return; }
+    cargarFavoritos(1);
+  }catch(e){ mostrarSetup(); }
+}
+
+function tabsBar(){
+  return `<div class="tabs">
+    <button class="tab-btn ${TAB==='posts'?'active':''}" onclick="cambiarTab('posts')"><i class="bi bi-collection"></i> Posts</button>
+    <button class="tab-btn ${TAB==='creators'?'active':''}" onclick="cambiarTab('creators')"><i class="bi bi-people"></i> Creadores</button>
+  </div>`;
+}
+
+function cambiarTab(tab){
+  TAB=tab;
+  if(tab==='posts') cargarFavoritos(1);
+  else cargarCreadores(1);
+}
+
+function mostrarSetup(msg, ok){
+  document.getElementById('wrap').innerHTML=`
+    <div class="setup">
+      <h2><i class="bi bi-shield-lock"></i> Conectar tu sesión de bakemono</h2>
+      <p>Para leer tus favoritos necesito la cookie de tu sesión ya logueada en bakemono.app. No es tu contraseña — nunca la toco.</p>
+      <ol>
+        <li>Entrá a <code>bakemono.app</code> en Chrome, ya logueado</li>
+        <li>Abrí las herramientas de desarrollador (F12) → pestaña <b>Network</b></li>
+        <li>Recargá la página, clickeá cualquier request a <code>bakemono.app</code></li>
+        <li>En "Headers" → "Request Headers", buscá <code>Cookie</code> y copiá todo su valor</li>
+        <li>Pegalo acá abajo</li>
+      </ol>
+      <textarea id="cookieInput" placeholder="session=...; otra_cookie=..."></textarea>
+      <br><button class="btn-save" onclick="guardarCookie()">Guardar y conectar</button>
+      ${msg?`<div class="msg ${ok?'ok':'err'}">${esc(msg)}</div>`:''}
+    </div>`;
+}
+
+async function guardarCookie(){
+  const cookie=document.getElementById('cookieInput').value.trim();
+  if(!cookie){ mostrarSetup('Pegá la cookie primero.', false); return; }
+  try{
+    const r=await fetch('/api/bakemono/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cookie})});
+    const d=await r.json();
+    if(d.success){ toast('✓ Sesión guardada'); cargarFavoritos(1); }
+    else mostrarSetup(d.error||'Error al guardar', false);
+  }catch(e){ mostrarSetup('Error de conexión', false); }
+}
+
+async function cargarFavoritos(page){
+  TAB='posts'; PAGE=page;
+  const wrap=document.getElementById('wrap');
+  wrap.innerHTML=tabsBar()+'<div class="state"><div class="spin"></div></div>';
+  try{
+    const r=await fetch(`/api/bakemono/favoritos?page=${page}`);
+    const d=await r.json();
+    if(d.error){
+      mostrarSetup(d.error, false);
+      return;
+    }
+    HAS_NEXT=d.has_next;
+    if(!d.items.length){ wrap.innerHTML=tabsBar()+'<div class="state">Sin favoritos.</div>'; return; }
+    wrap.innerHTML=tabsBar()+`
+      <div class="grid" id="grid">${d.items.map(it=>`
+        <div class="card" onclick="abrirDetalle('${esc(it.plataforma)}','${esc(it.creador_id)}','${esc(it.post_id)}')">
+          <div class="thumb" style="background-image:url('${esc(it.preview)}')"></div>
+          <div class="body">
+            <div class="t">${esc(it.titulo)}</div>
+            <div class="meta">${esc(it.creador)} · ${esc(it.meta)}</div>
+          </div>
+        </div>`).join('')}</div>
+      <div class="pager">
+        <button ${page<=1?'disabled':''} onclick="cargarFavoritos(${page-1})"><i class="bi bi-chevron-left"></i></button>
+        <span style="color:var(--muted2);font-size:13px;align-self:center">Página ${page}</span>
+        <button ${!HAS_NEXT?'disabled':''} onclick="cargarFavoritos(${page+1})"><i class="bi bi-chevron-right"></i></button>
+      </div>`;
+  }catch(e){ wrap.innerHTML=tabsBar()+'<div class="state">Error de conexión.</div>'; }
+}
+
+async function cargarCreadores(page){
+  TAB='creators'; PAGE=page;
+  const wrap=document.getElementById('wrap');
+  wrap.innerHTML=tabsBar()+'<div class="state"><div class="spin"></div></div>';
+  try{
+    const r=await fetch(`/api/bakemono/creadores?page=${page}`);
+    const d=await r.json();
+    if(d.error){ mostrarSetup(d.error, false); return; }
+    HAS_NEXT=d.has_next;
+    if(!d.items.length){ wrap.innerHTML=tabsBar()+'<div class="state">Sin creadores favoritos.</div>'; return; }
+    wrap.innerHTML=tabsBar()+`
+      <div class="grid creators">${d.items.map(c=>`
+        <a class="creator-card" href="${esc(c.url)}" target="_blank" rel="noopener">
+          <img src="${esc(c.avatar)}" alt="" onerror="this.remove()">
+          <div class="cn">${esc(c.nombre)}</div>
+          <div class="cs">${esc(c.servicio)}</div>
+        </a>`).join('')}</div>
+      <div class="pager">
+        <button ${page<=1?'disabled':''} onclick="cargarCreadores(${page-1})"><i class="bi bi-chevron-left"></i></button>
+        <span style="color:var(--muted2);font-size:13px;align-self:center">Página ${page}</span>
+        <button ${!HAS_NEXT?'disabled':''} onclick="cargarCreadores(${page+1})"><i class="bi bi-chevron-right"></i></button>
+      </div>`;
+  }catch(e){ wrap.innerHTML=tabsBar()+'<div class="state">Error de conexión.</div>'; }
+}
+
+async function abrirDetalle(plataforma, creadorId, postId){
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('mTitulo').textContent='Cargando…';
+  document.getElementById('mCreador').textContent='';
+  document.getElementById('mBody').innerHTML='<div class="state"><div class="spin"></div></div>';
+  try{
+    const r=await fetch(`/api/bakemono/detalle/${plataforma}/${creadorId}/${postId}`);
+    const d=await r.json();
+    if(d.error){ document.getElementById('mBody').innerHTML=`<div class="empty-hint">${esc(d.error)}</div>`; return; }
+
+    document.getElementById('mTitulo').textContent=d.titulo;
+    document.getElementById('mCreador').textContent=d.creador;
+
+    let html='';
+    if(d.descripcion_html){
+      html+=`<div class="sec-title">Descripción</div><div class="desc-box">${d.descripcion_html}</div>`;
+    }
+    if(d.videos.length){
+      window._detalleActual=d;
+      html+=`<div class="sec-title"><i class="bi bi-check-circle-fill" style="color:#7cc47f"></i> Archivos alojados en bakemono (descarga directa a Animación)</div>
+        <div class="file-list">${d.videos.map((v,i)=>`
+          <div class="file-row" id="vid-${i}">
+            <span class="nom">${esc(v.nombre)}</span>
+            <button onclick='descargarArchivo(${i}, ${JSON.stringify(v)})'>
+              <i class="bi bi-download"></i> Descargar</button>
+          </div>`).join('')}</div>`;
+    }
+    if(d.externos.length){
+      html+=`<div class="sec-title"><i class="bi bi-box-arrow-up-right"></i> Links externos (puestos por el creador — abrir y bajar a mano)</div>
+        <div class="file-list">${d.externos.map(e=>`
+          <div class="file-row">
+            <span class="nom">${esc(e.host)}: ${esc(e.texto)}</span>
+            <a class="btn" href="${esc(e.url)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Abrir</a>
+          </div>`).join('')}</div>`;
+    }
+    if(!d.videos.length && !d.externos.length){
+      html+=`<div class="empty-hint">No encontré ningún link de descarga en este post.</div>`;
+    }
+    if(d.source_url){
+      html+=`<a class="source-link" href="${esc(d.source_url)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Ver post original</a>`;
+    }
+    document.getElementById('mBody').innerHTML=html;
+  }catch(e){
+    document.getElementById('mBody').innerHTML='<div class="empty-hint">Error de conexión.</div>';
+  }
+}
+
+async function descargarArchivo(i, archivo){
+  const det=window._detalleActual;
+  const row=document.getElementById(`vid-${i}`);
+  const btn=row.querySelector('button');
+  btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i> Encolando…';
+  try{
+    const r=await fetch('/api/bakemono/descargar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        creador: det.creador, titulo: det.titulo,
+        archivos:[{url:archivo.url, nombre:archivo.nombre}],
+        descripcion: det.descripcion_texto, fecha: det.fecha,
+        primera_imagen: det.imagenes.length ? det.imagenes[0].url : ''
+      })});
+    const d=await r.json();
+    if(d.success){ toast('✓ En cola de descarga'); btn.innerHTML='<i class="bi bi-check2"></i> En cola'; }
+    else { toast('Error: '+(d.error||'no se pudo')); btn.disabled=false; btn.innerHTML='<i class="bi bi-download"></i> Reintentar'; }
+  }catch(e){ toast('Error de conexión'); btn.disabled=false; btn.innerHTML='<i class="bi bi-download"></i> Reintentar'; }
+}
+
+function cerrarModal(){ document.getElementById('modal').classList.remove('show'); }
+
+// ── Panel de cola ──────────────────────────────────────────────────────────────
+let COLA_ABIERTA=false;
+function toggleColaPanel(){
+  COLA_ABIERTA=!COLA_ABIERTA;
+  document.getElementById('colaPanel').classList.toggle('show', COLA_ABIERTA);
+}
+
+async function pollCola(){
+  try{
+    const r=await fetch('/api/bakemono/cola');
+    const d=await r.json();
+    const jobs=d.jobs||[];
+    const toggle=document.getElementById('colaToggle');
+    if(!jobs.length){ toggle.classList.remove('show'); document.getElementById('colaPanel').classList.remove('show'); COLA_ABIERTA=false; return; }
+
+    toggle.classList.add('show');
+    const activos=jobs.filter(j=>j.estado==='pendiente'||j.estado==='descargando').length;
+    document.getElementById('colaBadge').textContent=activos?`(${activos})`:'';
+    document.getElementById('colaCnt').textContent=`${jobs.length}`;
+
+    if(COLA_ABIERTA){
+      document.getElementById('colaList').innerHTML=jobs.map(j=>`
+        <div class="cola-job ${j.estado==='error'?'error':''}">
+          <div class="jt">${esc(j.nombre)}</div>
+          <div class="jsub"><span>${esc(j.titulo)}</span><span>${j.estado}</span></div>
+          <div class="jbar"><div class="jfill" style="width:${j.progreso||0}%"></div></div>
+          ${j.error?`<div class="jerr">⚠ ${esc(j.error)}</div><button class="jretry" onclick="accionJob('${j.id}','reintentar')"><i class="bi bi-arrow-clockwise"></i> Reintentar (reanuda)</button>`:''}
+          ${(j.estado==='pendiente'||j.estado==='descargando')?`<button class="jretry" onclick="accionJob('${j.id}','cancelar')"><i class="bi bi-x-lg"></i> Cancelar</button>`:''}
+        </div>`).join('');
+    }
+  }catch(e){}
+}
+
+async function accionJob(jid, accion){
+  await fetch('/api/bakemono/cola/accion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:jid, accion})});
+  pollCola();
+}
+
+setInterval(pollCola, 3000);
+pollCola();
+
+init();
+</script>
+</body>
+</html>

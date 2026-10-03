@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Videos duplicados</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2e2e2e;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e8e8; --muted:#777; --muted2:#999; --accent:#f5a623; --accent2:#ffcd6a;
+  --pink:#ec407a; --danger:#e53935; --success:#43a047; --info:#42a5f5; --r:10px; --nav-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+.top-nav{background:rgba(15,15,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);min-height:var(--nav-h);display:flex;align-items:center;padding:0 12px;gap:8px;position:sticky;top:0;z-index:200}
+.brand{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;background:var(--pink);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#111;font-size:15px;flex-shrink:0}
+.nav-link-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;white-space:nowrap}
+.nav-link-btn:hover{color:var(--text);border-color:var(--accent)}
+.nav-spacer{margin-left:auto}
+@media(max-width:560px){.top-nav{flex-wrap:wrap;padding:8px 12px}.nav-spacer{display:none}}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 14px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.btn2{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.btn2:hover{border-color:var(--accent);color:#fff}
+.btn2:disabled{opacity:.5;cursor:not-allowed}
+.btn2.active{border-color:var(--accent);color:#fff;background:var(--surface3)}
+.muted{color:var(--muted2);font-size:12.5px}
+
+#estado{padding:40px 0;text-align:center;color:var(--muted2)}
+
+.par{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.par-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px}
+.par-head .lib{background:var(--surface3);border-radius:999px;padding:3px 10px;font-weight:600;color:var(--accent2)}
+.par-head .dist{color:var(--muted2)}
+.par-body{display:flex;gap:14px;flex-wrap:wrap}
+.item{flex:1;min-width:240px;display:flex;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px}
+.item img{width:110px;height:62px;object-fit:cover;border-radius:6px;background:var(--surface3);flex-shrink:0}
+.item-info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.item-info .nom{font-size:12.5px;font-weight:600;word-break:break-word;line-height:1.3}
+.item-info .carpeta-mini{font-size:11px;color:var(--muted)}
+.item-actions{display:flex;gap:6px;margin-top:auto}
+.item-actions button{background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.item-actions button:hover{filter:brightness(1.15)}
+.item-actions button:disabled{opacity:.5;cursor:not-allowed}
+.item-actions button.mover{border-color:var(--info);color:var(--info)}
+.item-actions button.borrar{background:var(--danger);border-color:var(--danger);color:#fff}
+.par.resuelto{opacity:.35;pointer-events:none}
+.no-dup{text-align:center;padding:60px 0;color:var(--muted2)}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-camera-reels"></i></div><span>Videos duplicados</span></div>
+  <div class="nav-spacer"></div>
+  <a href="/manga-duplicados" class="nav-link-btn"><i class="bi bi-images"></i> Duplicados de manga</a>
+</div>
+
+<div class="wrap">
+  <div class="toolbar">
+    <button class="btn2 active" id="tab-todas" onclick="cambiarLib('')">Todas</button>
+    <button class="btn2" id="tab-hentai" onclick="cambiarLib('hentai')">Hentai</button>
+    <button class="btn2" id="tab-animacion" onclick="cambiarLib('animacion')">Animación</button>
+    <button class="btn2" id="tab-xxx" onclick="cambiarLib('xxx')">XXX</button>
+  </div>
+  <div class="toolbar">
+    <button class="btn2" id="btnEscanear"><i class="bi bi-search"></i> Escanear</button>
+    <button class="btn2" id="btnRefresh"><i class="bi bi-arrow-clockwise"></i> Forzar recalcular</button>
+    <span class="muted" id="resumen"></span>
+  </div>
+
+  <div id="estado">Presioná Escanear para buscar videos duplicados (compara duración + contenido visual, dentro de cada biblioteca).</div>
+  <div id="lista"></div>
+</div>
+
+<script>
+const estado = document.getElementById('estado');
+const lista = document.getElementById('lista');
+const resumen = document.getElementById('resumen');
+let LIB = '';
+
+function cambiarLib(lib) {
+  LIB = lib;
+  ['todas', 'hentai', 'animacion', 'xxx'].forEach(l => {
+    document.getElementById(`tab-${l}`).classList.toggle('active', (l === 'todas' ? '' : l) === lib);
+  });
+  lista.innerHTML = '';
+  resumen.textContent = '';
+  estado.style.display = 'block';
+  estado.textContent = 'Presioná Escanear para buscar videos duplicados.';
+}
+
+function previewUrl(id) {
+  return `/api/video/duplicados/preview/${encodeURIComponent(id)}`;
+}
+
+function fmtDuracion(s) {
+  const m = Math.floor(s / 60), sec = Math.round(s % 60);
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function renderItem(par, lado) {
+  const it = par[lado];
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.innerHTML = `
+    <img src="${previewUrl(it.id)}" alt="" loading="lazy">
+    <div class="item-info">
+      <div class="nom">${it.nombre}</div>
+      <div class="carpeta-mini">${it.carpeta} · ${fmtDuracion(it.duracion)}</div>
+      <div class="item-actions">
+        <button type="button" class="mover"><i class="bi bi-folder-symlink"></i> Mover a revisión</button>
+        <button type="button" class="borrar"><i class="bi bi-trash"></i> Borrar</button>
+      </div>
+    </div>
+  `;
+  const [btnMover, btnBorrar] = div.querySelectorAll('button');
+  btnMover.addEventListener('click', () => moverRevision(it, div.closest('.par')));
+  btnBorrar.addEventListener('click', () => borrar(it, div.closest('.par')));
+  return div;
+}
+
+async function moverRevision(it, parEl) {
+  if (!confirm(`¿Mover "${it.nombre}" a _Duplicados para revisión?\nNo se borra, queda ahí hasta que decidas.`)) return;
+  const btns = parEl.querySelectorAll('button');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const res = await fetch('/api/video/duplicados/mover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: it.id })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      parEl.classList.add('resuelto');
+    } else {
+      alert('Error: ' + (data.error || 'no se pudo mover'));
+      btns.forEach(b => b.disabled = false);
+    }
+  } catch (e) {
+    alert('Error de red: ' + e.message);
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+async function borrar(it, parEl) {
+  if (!confirm(`¿Borrar PERMANENTEMENTE "${it.nombre}"?\nEsta acción no se puede deshacer.`)) return;
+  const btns = parEl.querySelectorAll('button');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const res = await fetch('/api/video/duplicados/borrar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: it.id })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      parEl.classList.add('resuelto');
+    } else {
+      alert('Error: ' + (data.error || 'no se pudo borrar'));
+      btns.forEach(b => b.disabled = false);
+    }
+  } catch (e) {
+    alert('Error de red: ' + e.message);
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+function renderPar(par) {
+  const div = document.createElement('div');
+  div.className = 'par';
+  const head = document.createElement('div');
+  head.className = 'par-head';
+  head.innerHTML = `<span class="lib">${par.lib}</span><span class="dist">distancia media ${par.distancia}</span>`;
+  const body = document.createElement('div');
+  body.className = 'par-body';
+  body.appendChild(renderItem(par, 'a'));
+  body.appendChild(renderItem(par, 'b'));
+  div.appendChild(head);
+  div.appendChild(body);
+  return div;
+}
+
+async function escanear(refresh) {
+  estado.style.display = 'block';
+  estado.textContent = 'Escaneando videos (puede tardar bastante la primera vez — cada video se abre y se leen 5 frames)...';
+  lista.innerHTML = '';
+  resumen.textContent = '';
+  try {
+    const url = `/api/video/duplicados${LIB ? '?lib=' + LIB : ''}${refresh ? (LIB ? '&' : '?') + 'refresh=1' : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+    estado.style.display = 'none';
+    if (!items.length) {
+      lista.innerHTML = '<div class="no-dup"><i class="bi bi-check-circle" style="font-size:28px"></i><br><br>No se encontraron videos duplicados.</div>';
+      return;
+    }
+    resumen.textContent = `${items.length} par(es) encontrado(s)`;
+    items.forEach(par => lista.appendChild(renderPar(par)));
+  } catch (e) {
+    estado.textContent = 'Error escaneando: ' + e.message;
+  }
+}
+
+document.getElementById('btnEscanear').addEventListener('click', () => escanear(false));
+document.getElementById('btnRefresh').addEventListener('click', () => escanear(true));
+</script>
+</body>
+</html>

@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reproductor</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+/* ─── Variables ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #0a0a0a;
+  --surface:   #111;
+  --surface2:  #1a1a1a;
+  --surface3:  #242424;
+  --border:    rgba(255,255,255,0.07);
+  --text:      #e8e8e8;
+  --muted:     #666;
+  --accent:    #f5a623;
+  --accent2:   #ffcd6a;
+  --radius:    8px;
+  --font:      'Inter', system-ui, sans-serif;
+  --transition: 180ms ease;
+}
+
+/* ─── Reset base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  min-height: 52px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: var(--surface3); border-color: rgba(255,255,255,0.15); }
+.back-btn svg { width: 15px; height: 15px; }
+
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+.header-title {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.header-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ─── Layout principal ───────────────────────────────────────────────────── */
+.layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* ─── Área del video ─────────────────────────────────────────────────────── */
+.video-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #000;
+}
+
+video {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  object-fit: contain;
+  background: #000;
+  display: block;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* ─── Overlay de click/doble-click sobre el video (pausa / seek ±10s) ───── */
+.video-click-area {
+  position: absolute;
+  inset: 0 0 44px 0;   /* deja libre la franja de la seek-bar debajo */
+  display: flex;
+  z-index: 3;
+  -webkit-tap-highlight-color: transparent;
+}
+.click-zone {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.seek-flash {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.seek-flash.show {
+  opacity: 1;
+  transform: scale(1);
+  transition: none;
+}
+
+/* ─── Barra de progreso custom (hover-scrub con miniaturas) ─────────────── */
+.seek-wrap {
+  position: relative;
+  flex-shrink: 0;
+  padding: 10px 16px 4px;
+  background: var(--surface);
+}
+.seek-bar {
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface3);
+  cursor: pointer;
+}
+.seek-bar:hover { height: 7px; }
+.seek-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  width: 0%;
+  pointer-events: none;
+}
+.seek-buffer {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: rgba(255,255,255,0.18);
+  border-radius: 3px;
+  width: 0%;
+  pointer-events: none;
+}
+.seek-thumb-preview {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 5;
+}
+.seek-thumb-preview.visible { display: flex; }
+.seek-thumb-preview img {
+  width: 160px; height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid var(--surface3);
+  background: #000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.seek-thumb-preview .seek-time {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.85);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ─── Barra de controles ─────────────────────────────────────────────────── */
+.controls {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), opacity var(--transition);
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) { background: var(--surface3); border-color: rgba(255,255,255,0.15); }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn.accent { background: var(--accent); border-color: transparent; }
+.btn.accent:hover:not(:disabled) { background: var(--accent2); }
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* Botones de icono solo — play/pausa, mute, subtítulos, fullscreen (tipo YouTube:
+   chicos, redondos, sin fondo salvo al pasar el mouse) */
+.btn-icon {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  min-width: 36px; min-height: 36px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.btn-icon:hover:not(:disabled) { background: rgba(255,255,255,0.12); }
+.btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-icon svg { width: 20px; height: 20px; flex-shrink: 0; }
+.btn-icon.subs-active { color: var(--accent); }
+.btn-icon.subs-loading { opacity: 0.6; cursor: wait; }
+
+.spacer { flex: 1; }
+
+.counter {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ─── Panel lateral (lista de videos) ───────────────────────────────────── */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  transition: width var(--transition), opacity var(--transition);
+  overflow: hidden;
+}
+.sidebar.hidden { width: 0; opacity: 0; }
+
+.sidebar-header {
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.video-list {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+}
+.video-list::-webkit-scrollbar { width: 4px; }
+.video-list::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+.video-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+  color: var(--muted);
+}
+.video-item:hover { background: var(--surface2); color: var(--text); }
+.video-item.active {
+  background: var(--surface2);
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+}
+.video-item .num {
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 22px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.video-item .name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.video-item .tick {
+  flex-shrink: 0;
+  color: #66bb6a;
+  font-size: 12px;
+  visibility: hidden;
+}
+.video-item.watched { color: #7fbf85; }
+.video-item.watched .name { opacity: 0.75; }
+.video-item.watched .tick { visibility: visible; }
+.video-item.watched:not(.active) { background: rgba(102,187,106,0.06); }
+
+/* Botón favorito activo */
+#fav-btn.fav-active { color: #f5a623; border-color: rgba(245,166,35,0.5); }
+#fav-btn.fav-active svg { fill: #f5a623; stroke: #f5a623; }
+
+
+/* ─── Estado vacío / error ───────────────────────────────────────────────── */
+.state-msg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.state-msg svg { width: 40px; height: 40px; opacity: 0.3; }
+
+/* ─── Spinner ────────────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 32px; height: 32px;
+  border: 2px solid var(--surface3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ─── Toast notificación ─────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 13px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* ─── Menú de exportación (video + subtítulos al escritorio) ─────────────── */
+.export-wrap { position: relative; display: inline-flex; }
+.export-menu {
+  position: absolute;
+  bottom: calc(100% + 8px); right: 0;
+  display: none;
+  flex-direction: column;
+  min-width: 260px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  z-index: 500;
+}
+.export-menu.open { display: flex; }
+.export-menu button {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  cursor: pointer;
+}
+.export-menu button:hover { background: rgba(255,255,255,0.08); }
+.export-menu small { display: block; opacity: 0.6; font-size: 11px; }
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .sidebar.mobile-open {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    z-index: 100;
+  }
+  /* El overlay tapa el header (y con él el botón "Volver" y el que abre esta
+     misma lista) — sin esto no había forma de cerrarla una vez abierta. */
+  .sidebar-close-btn { display: block; }
+  .controls { flex-wrap: wrap; gap: 8px; }
+  .header-title { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <button class="back-btn" onclick="volverAGaleria()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 5l-7 7 7 7"/>
+    </svg>
+    Volver
+  </button>
+  <div class="header-info">
+    <div class="header-title" id="title">Cargando…</div>
+    <div class="header-sub" id="subtitle"></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn" id="fav-btn" onclick="toggleFav()" title="Favorito" style="display:none;">
+      <svg id="fav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+    </button>
+    <button class="btn" id="list-toggle-btn" onclick="toggleSidebar()" title="Lista de videos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Área video -->
+  <div class="video-area" id="video-area">
+    <div class="state-msg" id="loading-msg">
+      <div class="spinner"></div>
+      <span>Cargando videos…</span>
+    </div>
+    <div class="video-click-area" id="video-click-area" style="display:none;">
+      <div class="click-zone" id="click-zone-left"><span class="seek-flash" id="seek-flash-left">«10</span></div>
+      <div class="click-zone" id="click-zone-right"><span class="seek-flash" id="seek-flash-right">10»</span></div>
+    </div>
+    <video id="player" autoplay style="display:none;"></video>
+    <div class="seek-wrap" id="seek-wrap" style="display:none;">
+      <div class="seek-thumb-preview" id="seek-preview">
+        <img id="seek-preview-img" alt="">
+        <span class="seek-time" id="seek-preview-time">0:00</span>
+      </div>
+      <div class="seek-bar" id="seek-bar">
+        <div class="seek-buffer" id="seek-buffer"></div>
+        <div class="seek-fill" id="seek-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles -->
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      Lista de videos
+      <button class="sidebar-close-btn" onclick="toggleSidebar()" title="Cerrar">✕</button>
+    </div>
+    <div class="video-list" id="video-list"></div>
+  </div>
+
+</div>
+
+<!-- Barra de controles: fuera del layout para quedar al fondo -->
+<div class="controls">
+  <button class="btn-icon" id="playpause-btn" onclick="togglePlay()" title="Reproducir/Pausar (Espacio)">
+    <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+    <svg id="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>
+  </button>
+  <button class="btn" id="prev-btn" disabled onclick="navigate(-1)" title="Episodio anterior (P)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>
+    </svg>
+    Anterior
+  </button>
+  <button class="btn accent" id="next-btn" disabled onclick="navigate(1)" title="Siguiente episodio (N)">
+    Siguiente
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>
+    </svg>
+  </button>
+  <button class="btn" id="speed-btn" onclick="cycleSpeed()" title="Velocidad de reproducción">1×</button>
+  <span class="counter" id="time-counter">0:00 / 0:00</span>
+  <div class="spacer"></div>
+  <span class="counter" id="counter"></span>
+  <button class="btn-icon" id="mute-btn" onclick="toggleMute()" title="Silenciar (M)">
+    <svg id="vol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+    <svg id="mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+  </button>
+  <button class="btn-icon" id="subs-btn" onclick="toggleSubtitles()" title="Subtítulos automáticos (español)" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="6" y1="10" x2="10" y2="10"/><line x1="6" y1="14" x2="12" y2="14"/><line x1="14" y1="10" x2="18" y2="10"/>
+    </svg>
+  </button>
+  <div class="export-wrap" id="export-wrap" style="display:none;">
+    <button class="btn-icon" id="export-btn" onclick="toggleExportMenu(event)" title="Guardar en el escritorio con subtítulos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+    <div class="export-menu" id="export-menu">
+      <button onclick="exportarVideo('quemado')">Con subtítulos quemados<small>Se ven en cualquier lado · 1-3 min</small></button>
+      <button onclick="exportarVideo('pista')">Con pista de subtítulos<small>Rápido · se pueden apagar (.mkv)</small></button>
+    </div>
+  </div>
+  <button class="btn-icon" id="fullscreen-btn" onclick="toggleFullscreen()" title="Pantalla completa (F)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+    </svg>
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Configuración por modo ────────────────────────────────────────────────────
+const MODOS = {
+  hentai: {
+    fetchUrl:  (p) => `/api/hentai/detalle/${encodeURIComponent(p.id)}`,
+    videoUrl:  (p, v) => `/hentai/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`,
+    titulo:    (p) => p.id,
+    subtitulo: (p, videos) => `${videos.length} video${videos.length !== 1 ? 's' : ''}`,
+    videoKey:  (v) => v,          // qué string mostrar en la lista
+    spriteUrl: (p, v) => `/api/hentai/sprite/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`,
+    subtitlesStartUrl: null,
+  },
+  animacion: {
+    fetchUrl:  (p) => `/api/animacion/${encodeURIComponent(p.artista)}/${encodeURIComponent(p.id)}`,
+    videoUrl:  (p, v) => `/animacion/${encodeURIComponent(p.artista)}/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`,
+    titulo:    (p) => `${p.artista} — ${p.id}`,
+    subtitulo: (p, videos) => `${videos.length} video${videos.length !== 1 ? 's' : ''}`,
+    videoKey:  (v) => v,
+    spriteUrl: null,
+    subtitlesStartUrl: (p, v) => `/api/animacion/subtitles/${encodeURIComponent(p.artista)}/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}`,
+    exportUrl: (p, v, f) => `/api/animacion/export/${encodeURIComponent(p.artista)}/${encodeURIComponent(p.id)}/${encodeURIComponent(v)}?formato=${f}`,
+  },
+  xxx: {
+    fetchUrl:  (p) => `/api/xxx/${encodeURIComponent(p.category)}`,
+    videoUrl:  (p, v) => `/xxx/${encodeURIComponent(p.category)}/${encodeURIComponent(v.video)}`,
+    titulo:    (p) => p.category,
+    subtitulo: (p, videos) => `${videos.length} video${videos.length !== 1 ? 's' : ''}`,
+    videoKey:  (v) => v.nombre,   // los videos XXX son objetos {nombre, video, preview}
+    spriteUrl: (p, v) => `/api/xxx/sprite/${encodeURIComponent(p.category)}/${encodeURIComponent(v.video)}`,
+    subtitlesStartUrl: (p, v) => `/api/xxx/subtitles/${encodeURIComponent(p.category)}/${encodeURIComponent(v.video)}`,
+    exportUrl: (p, v, f) => `/api/xxx/export/${encodeURIComponent(p.category)}/${encodeURIComponent(v.video)}?formato=${f}`,
+  },
+};
+
+// ── Estado global ─────────────────────────────────────────────────────────────
+let videos   = [];
+let current  = 0;
+let modo     = null;
+let params   = {};
+let sidebarOpen = window.innerWidth > 640;
+
+// Progreso de reproducción guardado en el servidor
+let savedProgress = { videos: {}, last_video: null };
+let _pendingSeek  = null;    // posición a restaurar cuando cargue el metadata
+let _seekForPending = -1;    // índice del video al que corresponde _pendingSeek
+let _lastSaveTs   = 0;       // throttle de guardado (cada 5 s)
+let isFav         = false;
+let currentSprite = null;   // metadata del sprite sheet del video actual (hover-scrub)
+
+const SPEEDS = [1, 1.25, 1.5, 2, 0.75];
+let speedIdx = 0;
+
+// Clave canónica de un video (los de xxx son objetos {nombre, video, preview})
+function videoKeyOf(v) {
+  return typeof v === 'string' ? v : (v.video || v.nombre);
+}
+
+// ── Elementos del DOM ─────────────────────────────────────────────────────────
+const player      = document.getElementById('player');
+const videoArea   = document.getElementById('video-area');
+const titleEl     = document.getElementById('title');
+const subtitleEl  = document.getElementById('subtitle');
+const prevBtn     = document.getElementById('prev-btn');
+const nextBtn     = document.getElementById('next-btn');
+const counterEl   = document.getElementById('counter');
+const loadingMsg  = document.getElementById('loading-msg');
+const videoList   = document.getElementById('video-list');
+const sidebar     = document.getElementById('sidebar');
+const toast       = document.getElementById('toast');
+const seekWrap    = document.getElementById('seek-wrap');
+const seekBar     = document.getElementById('seek-bar');
+const seekFill    = document.getElementById('seek-fill');
+const seekBuffer  = document.getElementById('seek-buffer');
+const seekPreview = document.getElementById('seek-preview');
+const seekPreviewImg  = document.getElementById('seek-preview-img');
+const seekPreviewTime = document.getElementById('seek-preview-time');
+const timeCounterEl   = document.getElementById('time-counter');
+const playIcon    = document.getElementById('play-icon');
+const pauseIcon   = document.getElementById('pause-icon');
+const volIcon     = document.getElementById('vol-icon');
+const muteIcon    = document.getElementById('mute-icon');
+
+// ── Inicialización ────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  const sp = new URLSearchParams(location.search);
+  modo = sp.get('mode') || detectLegacyMode();
+
+  if (!MODOS[modo]) {
+    showError(`Modo desconocido: "${modo}"`);
+    return;
+  }
+
+  // Recoger parámetros según modo
+  params = {
+    id:       sp.get('id')       || sp.get('hentai') || sp.get('animacion') || '',
+    artista:  sp.get('artista')  || '',
+    category: sp.get('category') || '',
+    video:    sp.get('video')    || '',
+  };
+
+  titleEl.textContent = MODOS[modo].titulo(params) || 'Reproductor';
+  if (!sidebarOpen) sidebar.classList.add('hidden');
+
+  // Restaurar volumen y velocidad guardados
+  player.volume = Math.min(1, Math.max(0, parseFloat(localStorage.getItem('mediaVolume') ?? '1') || 1));
+  const savedSpeed = parseFloat(localStorage.getItem('mediaSpeed') || '1');
+  speedIdx = Math.max(0, SPEEDS.indexOf(savedSpeed));
+  updateSpeedBtn();
+
+  // Botón de favorito (solo hentai por ahora)
+  if (modo === 'hentai' && params.id) initFavBtn();
+
+  // Cargar progreso guardado del ítem (para reanudar y marcar vistos)
+  try {
+    const q = new URLSearchParams({
+      tipo: modo, id: params.id, artista: params.artista, category: params.category,
+    });
+    const pr = await fetch(`/api/media/progress?${q}`);
+    if (pr.ok) savedProgress = await pr.json();
+  } catch {}
+
+  try {
+    const res  = await fetch(MODOS[modo].fetchUrl(params));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    videos = data.videos || [];
+
+    if (!videos.length) {
+      showError('No hay videos disponibles');
+      return;
+    }
+
+    // Prioridad: video pedido en la URL > último video visto > el primero
+    let startIdx = 0;
+    if (params.video) {
+      const idx = videos.findIndex(v =>
+        (typeof v === 'string' ? v : v.nombre) === params.video || videoKeyOf(v) === params.video
+      );
+      if (idx !== -1) startIdx = idx;
+    } else if (savedProgress.last_video) {
+      const idx = videos.findIndex(v => videoKeyOf(v) === savedProgress.last_video);
+      if (idx !== -1) startIdx = idx;
+    }
+
+    loadingMsg.style.display = 'none';
+    player.style.display = 'block';
+    seekWrap.style.display = 'block';
+    clickArea.style.display = 'flex';
+
+    initSubsBtn();
+    renderList();
+    loadVideo(startIdx);
+
+  } catch (err) {
+    console.error(err);
+    showError('Error al cargar los videos');
+  }
+}
+
+// Vuelve a la galería en la sub-vista correcta (artista/categoría) en vez de
+// usar history.back(): la galería es una SPA que cambia de vista sin recargar,
+// así que "atrás" del navegador (o depender de su historial acá) podía caer en
+// cualquier estado viejo en vez de la sección/subvista de la que se vino —
+// confirmado: siempre terminaba en Hentai > Largos sin importar de dónde se
+// hubiera abierto el video. Construir la URL de destino a mano es determinístico.
+function volverAGaleria() {
+  if (modo === 'animacion' && params.artista) {
+    location.href = `/reproductor-universal-galeria.html#animacion:${encodeURIComponent(params.artista)}`;
+  } else if (modo === 'xxx' && params.category) {
+    location.href = `/reproductor-universal-galeria.html#xxx:${encodeURIComponent(params.category)}`;
+  } else {
+    location.href = '/reproductor-universal-galeria.html';
+  }
+}
+
+// Compatibilidad con URLs antiguas sin ?mode=
+function detectLegacyMode() {
+  const path = location.pathname;
+  if (path.includes('animacion')) return 'animacion';
+  if (path.includes('xxx'))       return 'xxx';
+  return 'hentai';
+}
+
+// ── Reproducción ──────────────────────────────────────────────────────────────
+function loadVideo(idx) {
+  if (idx < 0 || idx >= videos.length) return;
+  // Guardar posición del video que se abandona
+  if (player.duration) saveMediaProgress();
+
+  current = idx;
+  const v = videos[idx];
+
+  // Preparar reanudación si hay posición guardada (con margen para no
+  // "reanudar" videos ya terminados o recién empezados)
+  const saved = savedProgress.videos?.[videoKeyOf(v)];
+  _pendingSeek = (saved && saved.position > 5 &&
+                  (!saved.duration || saved.position < saved.duration - 10))
+    ? saved.position : null;
+  // Referencia del video que pidió este seek — si el usuario navega a otro
+  // video antes de que llegue "loadedmetadata" (ej. clicks rápidos de
+  // siguiente/anterior), un handler tardío de una carga vieja no debe
+  // aplicar su seek sobre el video que quedó en pantalla.
+  _seekForPending = idx;
+
+  player.src = MODOS[modo].videoUrl(params, v);
+  player.load();
+  player.playbackRate = SPEEDS[speedIdx];
+  player.play().catch(() => {});
+
+  updateCounter();
+  updateButtons();
+  highlightItem(idx);
+  scrollItemIntoView(idx);
+  loadSprite(v);
+  if (subsEnabled) requestSubtitles(v);
+  else clearSubsTrack();
+}
+
+// ── Sprite sheet para hover-scrub de la timeline (tipo YouTube) ────────────────
+function loadSprite(v) {
+  currentSprite = null;
+  const fn = MODOS[modo].spriteUrl;
+  if (!fn) return;
+  fetch(fn(params, v)).then(r => r.ok ? r.json() : null).then(meta => {
+    if (meta && videos[current] === v) currentSprite = meta;
+  }).catch(() => {});
+}
+
+// ── Subtítulos automáticos (transcripción + traducción a español) ──────────────
+let subsEnabled  = false;   // el usuario activó el botón CC
+let subsPollTimer = null;
+
+function initSubsBtn() {
+  const btn = document.getElementById('subs-btn');
+  btn.style.display = MODOS[modo].subtitlesStartUrl ? '' : 'none';
+  document.getElementById('export-wrap').style.display = MODOS[modo].exportUrl ? '' : 'none';
+}
+
+// ── Exportar video con subtítulos al escritorio ───────────────────────────────
+function toggleExportMenu(ev) {
+  ev.stopPropagation();
+  document.getElementById('export-menu').classList.toggle('open');
+}
+document.addEventListener('click', () => document.getElementById('export-menu').classList.remove('open'));
+
+function exportarVideo(formato) {
+  const fn = MODOS[modo].exportUrl;
+  if (!fn) return;
+  document.getElementById('export-menu').classList.remove('open');
+  // Bound to the video that was playing on click: the export keeps going
+  // (server side) even if the user moves on to another video.
+  const url = fn(params, videos[current], formato);
+  const btn = document.getElementById('export-btn');
+  btn.classList.add('subs-loading');
+
+  const poll = () => {
+    fetch(url, { method: 'POST' }).then(r => r.json()).then(data => {
+      if (data.status === 'done') {
+        btn.classList.remove('subs-loading');
+        showToast('Guardado en el escritorio: ' + data.archivo, 6000);
+      } else if (data.status === 'error' || data.error) {
+        btn.classList.remove('subs-loading');
+        showToast('No se pudo exportar: ' + (data.error || 'error desconocido'), 6000);
+      } else {
+        showToast(data.status === 'subtitulando'
+          ? 'Generando subtítulos antes de exportar…'
+          : 'Armando el video…', 4000);
+        setTimeout(poll, 4000);
+      }
+    }).catch(() => setTimeout(poll, 5000));
+  };
+  poll();
+}
+
+function clearSubsTrack() {
+  clearTimeout(subsPollTimer);
+  subsPollTimer = null;
+  // Poner el track en "disabled" ANTES de quitarlo del DOM: si se lo saca
+  // directo mientras un cue está en pantalla, el navegador puede seguir
+  // pintando ese cue (queda "pegado") hasta el próximo cambio de cue, en vez
+  // de limpiarse al instante — confirmado, el subtítulo del video anterior
+  // quedaba visible sobre el siguiente video hasta recargar la página.
+  for (const t of player.textTracks) t.mode = 'disabled';
+  player.querySelectorAll('track').forEach(t => t.remove());
+}
+
+function toggleSubtitles() {
+  subsEnabled = !subsEnabled;
+  const btn = document.getElementById('subs-btn');
+  btn.classList.toggle('subs-active', subsEnabled);
+  if (subsEnabled) {
+    requestSubtitles(videos[current]);
+  } else {
+    clearSubsTrack();
+    btn.classList.remove('subs-loading');
+  }
+}
+
+function requestSubtitles(v) {
+  const fn = MODOS[modo].subtitlesStartUrl;
+  if (!fn || !subsEnabled) return;
+  clearSubsTrack();
+
+  const btn = document.getElementById('subs-btn');
+  btn.classList.add('subs-loading');
+
+  const poll = () => {
+    fetch(fn(params, v), { method: 'POST' }).then(r => r.json()).then(data => {
+      if (!subsEnabled || videos[current] !== v) return;   // el usuario cambió de video o desactivó
+      if (data.status === 'done' && data.subtitle_url) {
+        btn.classList.remove('subs-loading');
+        attachSubtitleTrack(data.subtitle_url);
+      } else if (data.status === 'error') {
+        btn.classList.remove('subs-loading');
+        showToast('No se pudieron generar los subtítulos: ' + (data.error || 'error desconocido'));
+      } else {
+        showToast('Generando subtítulos (puede tardar unos minutos)…', 4000);
+        subsPollTimer = setTimeout(poll, 4000);
+      }
+    }).catch(() => {
+      subsPollTimer = setTimeout(poll, 5000);
+    });
+  };
+  poll();
+}
+
+function attachSubtitleTrack(url) {
+  const track = document.createElement('track');
+  track.kind = 'subtitles';
+  track.label = 'Español (auto)';
+  track.srclang = 'es';
+  track.src = url;
+  track.default = true;
+  player.appendChild(track);
+  if (player.textTracks.length) player.textTracks[player.textTracks.length - 1].mode = 'showing';
+}
+
+player.addEventListener('loadedmetadata', () => {
+  player.playbackRate = SPEEDS[speedIdx];
+  if (_pendingSeek != null && current === _seekForPending &&
+      _pendingSeek < (player.duration || Infinity)) {
+    player.currentTime = _pendingSeek;
+    showToast(`Reanudando en ${fmtTime(_pendingSeek)}`);
+  }
+  _pendingSeek = null;
+});
+
+function navigate(dir) {
+  loadVideo(current + dir);
+}
+
+// ── Progreso de reproducción (servidor) ───────────────────────────────────────
+function saveMediaProgress(useBeacon = false) {
+  if (!videos.length || !player.duration || isNaN(player.duration)) return;
+  const key = videoKeyOf(videos[current]);
+  const payload = JSON.stringify({
+    tipo: modo, id: params.id, artista: params.artista, category: params.category,
+    video: key, position: player.currentTime, duration: player.duration,
+  });
+  // Actualizar copia local (marcas de "visto" en la lista)
+  savedProgress.videos = savedProgress.videos || {};
+  savedProgress.videos[key] = { position: player.currentTime, duration: player.duration };
+  updateWatchedTicks();
+
+  if (useBeacon) {
+    navigator.sendBeacon?.('/api/media/progress', payload);
+    return;
+  }
+  fetch('/api/media/progress', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload,
+  }).catch(() => {});
+}
+
+player.addEventListener('timeupdate', () => {
+  const now = Date.now();
+  if (!player.paused && now - _lastSaveTs > 5000) {
+    _lastSaveTs = now;
+    saveMediaProgress();
+  }
+});
+player.addEventListener('pause', () => { if (player.currentTime > 0) saveMediaProgress(); });
+window.addEventListener('pagehide', () => saveMediaProgress(true));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveMediaProgress(true);
+});
+
+function isWatched(v) {
+  const s = savedProgress.videos?.[videoKeyOf(v)];
+  return !!(s && s.duration > 0 && s.position / s.duration >= 0.9);
+}
+
+function updateWatchedTicks() {
+  document.querySelectorAll('.video-item').forEach((el, i) => {
+    el.classList.toggle('watched', isWatched(videos[i]));
+  });
+}
+
+function fmtTime(sec) {
+  sec = Math.floor(sec);
+  const m = Math.floor(sec / 60), s = sec % 60;
+  const h = Math.floor(m / 60);
+  return h > 0 ? `${h}:${String(m % 60).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+               : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ── Velocidad de reproducción ─────────────────────────────────────────────────
+function cycleSpeed() {
+  speedIdx = (speedIdx + 1) % SPEEDS.length;
+  player.playbackRate = SPEEDS[speedIdx];
+  localStorage.setItem('mediaSpeed', SPEEDS[speedIdx]);
+  updateSpeedBtn();
+  showToast(`Velocidad ${SPEEDS[speedIdx]}×`);
+}
+
+function updateSpeedBtn() {
+  const btn = document.getElementById('speed-btn');
+  if (btn) btn.textContent = `${SPEEDS[speedIdx]}×`;
+}
+
+// ── Click / doble-click sobre el video (tipo YouTube) ───────────────────────
+const clickArea  = document.getElementById('video-click-area');
+const zoneLeft   = document.getElementById('click-zone-left');
+const zoneRight  = document.getElementById('click-zone-right');
+const flashLeft  = document.getElementById('seek-flash-left');
+const flashRight = document.getElementById('seek-flash-right');
+let _clickTimer = null;
+
+function flashSeek(el) {
+  el.classList.remove('show');
+  void el.offsetWidth;   // reinicia la transición si se clickea rápido varias veces
+  el.classList.add('show');
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.classList.remove('show'), 500);
+}
+
+function seekBy(delta) {
+  if (!player.duration) return;
+  player.currentTime = Math.min(player.duration, Math.max(0, player.currentTime + delta));
+}
+
+function onZoneClick(zone) {
+  // Un solo click: pausar/reanudar. Se espera un instante por si es el
+  // primer click de un doble-click, para no pausar y luego reanudar.
+  if (_clickTimer) return;   // ya hay un click pendiente → esto es el 2do click del dblclick
+  _clickTimer = setTimeout(() => {
+    _clickTimer = null;
+    togglePlay();
+  }, 220);
+}
+
+function onZoneDblClick(zone, dir) {
+  clearTimeout(_clickTimer);
+  _clickTimer = null;
+  seekBy(dir * 10);
+  flashSeek(dir < 0 ? flashLeft : flashRight);
+}
+
+zoneLeft.addEventListener('click', () => onZoneClick('left'));
+zoneRight.addEventListener('click', () => onZoneClick('right'));
+zoneLeft.addEventListener('dblclick', () => onZoneDblClick('left', -1));
+zoneRight.addEventListener('dblclick', () => onZoneDblClick('right', 1));
+
+// ── Controles custom ─────────────────────────────────────────────────────────
+function togglePlay() {
+  if (player.paused) player.play().catch(() => {});
+  else player.pause();
+}
+
+player.addEventListener('play',  () => { playIcon.style.display = 'none';  pauseIcon.style.display = ''; });
+player.addEventListener('pause', () => { playIcon.style.display = '';      pauseIcon.style.display = 'none'; });
+
+function toggleMute() {
+  player.muted = !player.muted;
+}
+
+player.addEventListener('volumechange', () => {
+  const muted = player.muted || player.volume === 0;
+  volIcon.style.display  = muted ? 'none' : '';
+  muteIcon.style.display = muted ? '' : 'none';
+});
+
+function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    videoArea.requestFullscreen?.().catch(() => {});
+  }
+}
+
+// Barra de progreso: fill, buffer y contador de tiempo
+player.addEventListener('timeupdate', () => {
+  if (!player.duration) return;
+  seekFill.style.width = `${(player.currentTime / player.duration) * 100}%`;
+  timeCounterEl.textContent = `${fmtTime(player.currentTime)} / ${fmtTime(player.duration)}`;
+});
+
+player.addEventListener('progress', () => {
+  if (!player.duration || !player.buffered.length) return;
+  const end = player.buffered.end(player.buffered.length - 1);
+  seekBuffer.style.width = `${Math.min(100, (end / player.duration) * 100)}%`;
+});
+
+player.addEventListener('loadedmetadata', () => {
+  timeCounterEl.textContent = `${fmtTime(player.currentTime)} / ${fmtTime(player.duration)}`;
+});
+
+// Click en la barra: buscar esa posición
+seekBar.addEventListener('click', (e) => {
+  if (!player.duration) return;
+  const rect = seekBar.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  player.currentTime = ratio * player.duration;
+});
+
+// Hover: mostrar miniatura del sprite sheet en esa posición
+seekBar.addEventListener('mousemove', (e) => {
+  if (!player.duration) return;
+  const rect = seekBar.getBoundingClientRect();
+  const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  const t = ratio * player.duration;
+
+  seekPreviewTime.textContent = fmtTime(t);
+  const previewW = seekPreview.offsetWidth || 160;
+  let left = e.clientX - rect.left - previewW / 2;
+  left = Math.min(Math.max(left, 0), rect.width - previewW);
+  seekPreview.style.left = `${left}px`;
+  seekPreview.style.display = 'flex';
+
+  if (currentSprite && currentSprite.sprite_url) {
+    const { cols, cell_w, cell_h, count, duration } = currentSprite;
+    const idx = Math.min(count - 1, Math.max(0, Math.floor((t / duration) * count)));
+    const col = idx % cols, row = Math.floor(idx / cols);
+    seekPreviewImg.src = currentSprite.sprite_url;
+    seekPreviewImg.style.width  = `${cell_w}px`;
+    seekPreviewImg.style.height = `${cell_h}px`;
+    seekPreviewImg.style.objectFit = 'none';
+    seekPreviewImg.style.objectPosition = `-${col * cell_w}px -${row * cell_h}px`;
+    seekPreviewImg.style.display = '';
+  } else {
+    seekPreviewImg.style.display = 'none';
+  }
+});
+
+seekBar.addEventListener('mouseleave', () => {
+  seekPreview.style.display = 'none';
+});
+
+// Persistir volumen
+player.addEventListener('volumechange', () => {
+  localStorage.setItem('mediaVolume', player.volume);
+});
+
+// Auto-avance: al terminar un episodio, saltar al siguiente no visto
+// (si no queda ninguno sin ver, avanza igual al siguiente en la lista).
+player.addEventListener('ended', () => {
+  saveMediaProgress();
+  if (current >= videos.length - 1) return;
+  let next = videos.findIndex((v, i) => i > current && !isWatched(v));
+  if (next === -1) next = current + 1;
+  loadVideo(next);
+});
+
+// ── Atajos de teclado (estilo YouTube) ─────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  // No interceptar mientras el usuario escribe en un input/textarea
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (!videos.length) return;
+
+  switch (e.key) {
+    case ' ':
+    case 'k':
+      e.preventDefault();
+      togglePlay();
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      player.currentTime = Math.min(player.duration || Infinity, player.currentTime + 10);
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      player.currentTime = Math.max(0, player.currentTime - 10);
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      player.volume = Math.min(1, player.volume + 0.1);
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      player.volume = Math.max(0, player.volume - 0.1);
+      break;
+    case 'f':
+    case 'F':
+      e.preventDefault();
+      toggleFullscreen();
+      break;
+    case 'm':
+    case 'M':
+      e.preventDefault();
+      toggleMute();
+      break;
+    case 'l':
+    case 'L':
+      e.preventDefault();
+      toggleSidebar();
+      break;
+    case 'n':
+    case 'N':
+      e.preventDefault();
+      if (!nextBtn.disabled) navigate(1);
+      break;
+    case 'p':
+    case 'P':
+      e.preventDefault();
+      if (!prevBtn.disabled) navigate(-1);
+      break;
+    default:
+      // Números 0-9: saltar a ese % del video
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        const pct = parseInt(e.key, 10) / 10;
+        if (player.duration) player.currentTime = player.duration * pct;
+      }
+  }
+});
+
+// ── Favorito (hentai) ─────────────────────────────────────────────────────────
+async function initFavBtn() {
+  const btn = document.getElementById('fav-btn');
+  try {
+    const res = await fetch(`/api/hentai/check_favorite?nombre=${encodeURIComponent(params.id)}`);
+    const d = await res.json();
+    isFav = !!d.is_favorite;
+    btn.classList.toggle('fav-active', isFav);
+    btn.style.display = '';
+  } catch {}
+}
+
+async function toggleFav() {
+  const btn = document.getElementById('fav-btn');
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/toggle_favorite', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'hentai', name: params.id, is_favorite: isFav }),
+    });
+    const d = await res.json();
+    if (d.success) {
+      isFav = !isFav;
+      btn.classList.toggle('fav-active', isFav);
+      showToast(isFav ? '★ Añadido a favoritos' : 'Quitado de favoritos');
+    } else {
+      showToast('Error: ' + (d.error || 'no se pudo cambiar'));
+    }
+  } catch {
+    showToast('Error de conexión');
+  }
+  btn.disabled = false;
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function updateCounter() {
+  const sub = MODOS[modo].subtitulo(params, videos);
+  subtitleEl.textContent = sub;
+  counterEl.textContent  = `${current + 1} / ${videos.length}`;
+}
+
+function updateButtons() {
+  prevBtn.disabled = current <= 0;
+  nextBtn.disabled = current >= videos.length - 1;
+}
+
+function renderList() {
+  videoList.innerHTML = '';
+  videos.forEach((v, i) => {
+    const label = MODOS[modo].videoKey(v);
+    const item  = document.createElement('div');
+    item.className = 'video-item' + (i === current ? ' active' : '') + (isWatched(v) ? ' watched' : '');
+    item.dataset.idx = i;
+    item.innerHTML = `<span class="num">${i + 1}</span><span class="name" title="${label}">${label}</span><span class="tick">✓</span>`;
+    item.addEventListener('click', () => loadVideo(i));
+    videoList.appendChild(item);
+  });
+}
+
+function highlightItem(idx) {
+  document.querySelectorAll('.video-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+
+function scrollItemIntoView(idx) {
+  const item = videoList.querySelector(`.video-item[data-idx="${idx}"]`);
+  item?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  sidebar.classList.toggle('hidden', !sidebarOpen);
+  // En mobile abrir como overlay
+  if (window.innerWidth <= 640) {
+    sidebar.classList.toggle('mobile-open', sidebarOpen);
+  }
+}
+
+function showError(msg) {
+  loadingMsg.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>${msg}</span>`;
+  player.style.display = 'none';
+}
+
+function showToast(msg, duration = 2500) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// ── Teclado ───────────────────────────────────────────────────────────────────
+// Avanzar automáticamente al siguiente video
+player.addEventListener('ended', () => {
+  // Marcar como completado antes de pasar al siguiente
+  if (player.duration) {
+    savedProgress.videos = savedProgress.videos || {};
+    savedProgress.videos[videoKeyOf(videos[current])] = {
+      position: player.duration, duration: player.duration,
+    };
+    fetch('/api/media/progress', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: modo, id: params.id, artista: params.artista, category: params.category,
+        video: videoKeyOf(videos[current]), position: player.duration, duration: player.duration,
+      }),
+    }).catch(() => {});
+    updateWatchedTicks();
+  }
+  if (current < videos.length - 1) {
+    loadVideo(current + 1);
+  }
+});
+</script>
+<script>
+// PWA: el service worker cachea el shell y las miniaturas ya vistas.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

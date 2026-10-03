@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Descargas Hentai</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2e2e2e;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e8e8; --muted:#777; --muted2:#999; --accent:#f5a623; --accent2:#ffcd6a;
+  --pink:#ec407a; --danger:#e53935; --success:#43a047; --info:#42a5f5; --r:10px; --nav-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+.top-nav{background:rgba(15,15,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);min-height:var(--nav-h);display:flex;align-items:center;padding:0 12px;gap:8px;position:sticky;top:0;z-index:200;overflow-x:auto;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.brand{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;background:var(--pink);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#111;font-size:15px;flex-shrink:0}
+.nav-link-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;white-space:nowrap}
+.nav-link-btn:hover{color:var(--text);border-color:var(--accent)}
+.nav-spacer{margin-left:auto}
+@media (max-width: 480px) {
+  .brand-text { display: none; }
+  .nav-link-btn { padding: 6px 10px; font-size: 12px; }
+}
+.wrap{max-width:1400px;margin:0 auto;padding:16px 14px}
+/* novedades: episodios nuevos de series que ya tenemos */
+.novedades-banner{background:rgba(236,64,122,.08);border:1px solid rgba(236,64,122,.3);border-radius:var(--r);padding:12px 14px;margin-bottom:16px}
+.novedades-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--pink);margin-bottom:10px}
+.novedades-head i:first-child{font-size:15px}
+.novedades-close{margin-left:auto;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:13px;padding:2px 6px}
+.novedades-close:hover{color:var(--text)}
+.novedades-list{display:flex;flex-direction:column;gap:6px}
+.novedad-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.novedad-item .nom{flex:1;font-weight:600;color:var(--text)}
+.novedad-item .eps{color:var(--muted2);font-size:11.5px}
+.novedad-item button{background:var(--pink);border:none;color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.novedad-item button:hover{filter:brightness(1.1)}
+.novedad-item button:disabled{opacity:.5;cursor:not-allowed}
+
+/* toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.inp{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:8px 14px;color:var(--text);font-size:13px;outline:none}
+.inp:focus{border-color:var(--accent)}
+.search-box{position:relative;flex:1;min-width:200px;max-width:420px}
+.search-box .inp{width:100%;padding-left:34px}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.suggest-box{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;max-height:260px;overflow-y:auto;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.suggest-box.show{display:block}
+.suggest-item{padding:8px 14px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.suggest-item:hover,.suggest-item.active{background:var(--surface3,rgba(255,255,255,.06))}
+.suggest-item .ns{color:var(--muted);font-size:11.5px}
+.suggest-item .cant{color:var(--muted2);font-size:11.5px;white-space:nowrap}
+.btn2{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.btn2:hover{border-color:var(--accent);color:#fff}
+.btn2.active{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600}
+.btn2.pink{border-color:rgba(236,64,122,.35);color:#f48fb1}
+.btn2.pink:hover{background:rgba(236,64,122,.18)}
+select.inp{max-width:100%;text-overflow:ellipsis;border-radius:8px;cursor:pointer}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+/* results grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .thumb{aspect-ratio:16/10;background:var(--surface3) center/cover no-repeat;position:relative}
+.card .thumb .badge-tipo{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;letter-spacing:.3px}
+.card .thumb .btn-ban{position:absolute;top:6px;right:6px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:.15s}
+.card:hover .thumb .btn-ban{opacity:1}
+.card .thumb .btn-ban:hover{background:rgba(236,64,122,.85)}
+.card .body{padding:8px 9px 10px}
+.card .t{font-size:12.5px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.card .meta{font-size:10.5px;color:var(--muted2);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.state{padding:40px 10px;text-align:center;color:var(--muted);font-size:13px}
+/* tarjetas de galería (hitomi/3hentai) — horizontal, estilo Hitomi Downloader de escritorio */
+.grid.grid-galeria{grid-template-columns:1fr}
+.gcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:.15s;display:flex;gap:12px;padding:10px}
+.gcard:hover{border-color:var(--accent)}
+.gcard .gthumb{width:90px;height:120px;flex-shrink:0;border-radius:8px;background:var(--surface3) center/cover no-repeat;position:relative}
+.gcard .gthumb .badge-tipo{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.75);color:#fff;font-size:9.5px;font-weight:600;padding:2px 6px;border-radius:5px}
+.gcard .gbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.gcard .gt{font-size:14px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gcard .gmeta{font-size:11px;color:var(--muted2);display:flex;gap:8px;flex-wrap:wrap}
+.gcard .gtags{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.gcard .gtags span{background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 9px;font-size:10.5px;color:var(--muted2)}
+.gcard .gfoot{margin-top:auto;display:flex;gap:8px;align-items:center}
+.gcard .gfoot button{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:5px 11px;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.gcard .gfoot button:hover{border-color:var(--accent)}
+.gcard .gfoot .primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:600;margin-left:auto}
+.gcard .btn-ban{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;margin-left:auto;padding:2px 4px}
+.gcard .btn-ban:hover{color:var(--pink)}
+@media(max-width:480px){.gcard{padding:8px}.gcard .gthumb{width:70px;height:96px}.gcard .gt{font-size:13px}}
+.pager{display:flex;justify-content:center;gap:8px;margin-top:16px;align-items:center}
+/* queue panel */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);position:sticky;top:calc(var(--nav-h) + 16px)}
+.panel h3{font-size:13px;font-weight:700;padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;justify-content:space-between}
+.panel .list{max-height:70vh;overflow-y:auto;padding:8px}
+.job{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;margin-bottom:8px}
+.job .jt{font-size:12px;font-weight:600;line-height:1.3;display:flex;justify-content:space-between;gap:6px}
+.job .jsub{font-size:10.5px;color:var(--muted2);margin:3px 0 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bar{height:6px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.st{font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;text-transform:capitalize}
+.st.pendiente{background:rgba(255,255,255,.1);color:var(--muted2)}
+.st.descargando{background:rgba(66,165,245,.18);color:var(--info)}
+.st.clasificando{background:rgba(245,166,35,.18);color:var(--accent)}
+.st.completado{background:rgba(67,160,71,.2);color:#7cc47f}
+.st.error{background:rgba(229,57,53,.2);color:#ef7b78}
+.st.cancelado{background:rgba(255,255,255,.08);color:var(--muted)}
+.jact{display:flex;gap:6px;margin-top:7px}
+.jbtn{flex:1;background:var(--surface3);border:1px solid var(--border2);color:var(--muted2);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
+.jbtn:hover{color:#fff;border-color:var(--accent)}
+.jbtn.dgr:hover{border-color:var(--danger);color:#ef7b78}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 14px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal-c{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:760px;width:100%;overflow:hidden}
+.modal-h{display:flex;gap:14px;padding:16px;background:center/cover;position:relative}
+.modal-h::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(24,24,24,.6),var(--surface))}
+.modal-h>*{position:relative;z-index:1}
+.modal-poster{width:110px;height:150px;border-radius:8px;background:var(--surface3) center/cover;flex-shrink:0;border:1px solid var(--border2)}
+.modal-info h2{font-size:19px;font-weight:700;line-height:1.2}
+.modal-info .alt{font-size:12px;color:var(--muted2);margin-top:2px}
+.modal-info .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font-size:10.5px;background:var(--surface3);border:1px solid var(--border2);padding:2px 9px;border-radius:20px;color:var(--muted2)}
+.chip.g{background:rgba(236,64,122,.12);border-color:rgba(236,64,122,.3);color:#f48fb1}
+.modal-b{padding:16px}
+.syn{font-size:12.5px;color:var(--muted2);line-height:1.5;margin-bottom:14px}
+.eps-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.eps-head b{font-size:13px}
+.eps{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:7px;margin-bottom:16px}
+.ep{background:var(--surface2);border:1px solid var(--border2);border-radius:7px;padding:8px 4px;text-align:center;font-size:12px;cursor:pointer;user-select:none;transition:.12s}
+.ep:hover{border-color:var(--accent)}
+.ep.sel{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:600}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end}
+.gal-meta{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.gal-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.gal-row .lbl{font-size:11px;color:var(--muted);white-space:nowrap;min-width:64px}
+.gal-chip{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:999px;padding:3px 11px;font-size:11.5px;cursor:pointer;transition:.15s}
+.gal-chip:hover{border-color:var(--accent);color:#fff}
+/* Same as the Hitomi desktop app: only female/male tags have color (solid). */
+.gal-chip.female{background:#F472B6;border-color:#F472B6;color:#fff}
+.gal-chip.male{background:#60A5FA;border-color:#60A5FA;color:#fff}
+.gal-chip.female::after{content:" \2640"}
+.gal-chip.male::after{content:" \2642"}
+.gal-info{font-size:12px;color:var(--muted2);display:flex;gap:10px;flex-wrap:wrap}
+.gal-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:4px}
+.gal-pages img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;border:1px solid var(--border);background:var(--surface3);cursor:pointer;transition:.15s}
+.gal-pages img:hover{border-color:var(--accent);transform:scale(1.04)}
+/* Preview viewer: same look and behaviour as the manga reader in index.html */
+#pv-wrap{display:none;position:fixed;inset:0;background:#000;z-index:600;flex-direction:column;touch-action:pan-y;color:#fff}
+#pv-wrap.open{display:flex}
+#pv-img-box{flex:1;display:flex;justify-content:center;align-items:center;overflow:hidden;position:relative}
+#pv-img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;display:block}
+.pv-tz{position:absolute;top:0;bottom:0;z-index:5;-webkit-tap-highlight-color:transparent}
+#pv-tz-prev{left:0;width:28%}#pv-tz-next{right:0;width:28%}#pv-tz-center{left:28%;right:28%}
+#pv-hud-top{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top));background:linear-gradient(to bottom,rgba(0,0,0,.82) 0%,transparent 100%);z-index:10;gap:8px;transition:opacity 280ms,transform 280ms}
+#pv-hud-top.hidden{opacity:0;pointer-events:none;transform:translateY(-100%)}
+#pv-hud-bot{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;padding-bottom:max(14px,env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.88) 0%,transparent 100%);z-index:10;gap:12px;transition:opacity 280ms,transform 280ms}
+#pv-hud-bot.hidden{opacity:0;pointer-events:none;transform:translateY(100%)}
+#pv-fs-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:11;pointer-events:none;transition:opacity 250ms}
+#pv-fs-overlay.hidden{opacity:0}
+#pv-fs-overlay.hidden #pv-fs-btn{pointer-events:none}
+#pv-fs-btn{pointer-events:auto;background:rgba(0,0,0,.7);border:1.5px solid rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;border-radius:50px;padding:12px 22px;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:inherit;font-weight:500}
+.pv-btn{background:rgba(255,255,255,.1);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.pv-btn:active{background:rgba(255,255,255,.2)}
+.pv-btn:disabled{opacity:.4}
+.pv-btn.icon-only{padding:8px 10px}
+.pv-title{flex:1;text-align:center;font-size:12px;font-weight:600;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+.pv-indicator{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;color:#fff;min-width:72px;text-align:center;cursor:pointer}
+.pv-progress-track{position:fixed;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.08);z-index:12}
+.pv-progress-bar{height:100%;background:var(--accent);transition:width 180ms}
+#pv-scroll{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+#pv-wrap.scroll-mode #pv-img-box{display:none}
+#pv-wrap.scroll-mode #pv-scroll{display:block}
+.pv-scroll-page{width:100%;max-width:900px;margin:0 auto;line-height:0;background:#0a0a0a;aspect-ratio:2/3;position:relative;overflow:hidden}
+.pv-scroll-page img{width:100%;height:100%;object-fit:contain;display:block;user-select:none;-webkit-user-drag:none}
+.btn-primary2{background:var(--pink);border:none;color:#fff;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn-primary2:hover{filter:brightness(1.1)}
+.btn-primary2:disabled{opacity:.4;cursor:not-allowed}
+.x{position:absolute;top:12px;right:12px;z-index:2;background:rgba(0,0,0,.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+.spin{width:26px;height:26px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-download"></i></div><span class="brand-text">Descargas</span></div>
+  <div class="nav-spacer"></div>
+  <button class="nav-link-btn" onclick="location.href='/inicio'"><i class="bi bi-house-door"></i> Inicio</button>
+  <button class="nav-link-btn" onclick="location.href='/manga'"><i class="bi bi-book-half"></i> Manga</button>
+  <button class="nav-link-btn" onclick="location.href='/reproductor-universal-galeria.html'"><i class="bi bi-collection-play"></i> Media</button>
+</div>
+
+<div class="wrap">
+  <div class="novedades-banner" id="novedadesBanner" style="display:none">
+    <div class="novedades-head">
+      <i class="bi bi-bell-fill"></i>
+      <span id="novedadesTitulo"></span>
+      <button class="novedades-close" onclick="document.getElementById('novedadesBanner').style.display='none'">✕</button>
+    </div>
+    <div class="novedades-list" id="novedadesList"></div>
+  </div>
+
+  <div class="toolbar">
+    <select class="inp" id="site" onchange="cambiarSite()">
+      <option value="hentaila">Hentaila (episodios)</option>
+      <option value="3hentai">3Hentai (manga/galerías)</option>
+      <option value="hitomi">Hitomi.la (manga/galerías)</option>
+    </select>
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input class="inp" id="q" placeholder="Buscar hentai…" autocomplete="off"
+        oninput="onQInput()" onkeydown="onQKeydown(event)" onblur="setTimeout(ocultarSugerencias,150)">
+      <div class="suggest-box" id="suggestBox"></div>
+    </div>
+    <button class="btn2 active" id="tab-cat" onclick="setModo('catalogo')"><i class="bi bi-grid"></i> Catálogo</button>
+    <button class="btn2" id="tab-hub" onclick="setModo('hub')"><i class="bi bi-fire"></i> Recientes</button>
+    <select class="inp" id="genre" onchange="buscar(1)"><option value="">Todos los géneros</option></select>
+    <button class="btn2 pink" onclick="regenerarPreviews(this)"><i class="bi bi-image"></i> Regenerar previews</button>
+  </div>
+
+  <div class="toolbar" id="hitomiFiltrosBox" style="display:none">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted2)">
+      <input type="checkbox" id="hitomiPopularidad" onchange="buscar(1)"> Ordenar por popularidad
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted2)" title="Activado: mangas con AL MENOS UNO de los tags. Desactivado: mangas con TODOS los tags a la vez.">
+      <input type="checkbox" id="hitomiModoOr" onchange="buscar(1)"> Coincidir con cualquier tag (en vez de todos)
+    </label>
+    <input class="inp" id="hitomiMinPag" type="number" min="0" placeholder="Mín. páginas" style="width:110px" onkeydown="if(event.key==='Enter')buscar(1)">
+    <input class="inp" id="hitomiMaxPag" type="number" min="0" placeholder="Máx. páginas" style="width:110px" onkeydown="if(event.key==='Enter')buscar(1)">
+    <button class="btn2" onclick="buscar(1)"><i class="bi bi-funnel"></i> Aplicar</button>
+  </div>
+
+  <div class="toolbar" id="hitomiIdiomasBox" style="display:none;flex-wrap:wrap;gap:6px">
+    <span style="font-size:13px;color:var(--muted2);margin-right:4px">Idioma:</span>
+  </div>
+
+  <div class="toolbar" id="galeriaUrlBox" style="display:none">
+    <div class="search-box" style="max-width:520px">
+      <i class="bi bi-link-45deg"></i>
+      <input class="inp" id="galeriaUrl" placeholder="Pegar URL o id de galería" onkeydown="if(event.key==='Enter')descargarGaleriaUrl()">
+    </div>
+    <button class="btn2 active" onclick="descargarGaleriaUrl()"><i class="bi bi-download"></i> Descargar galería</button>
+  </div>
+
+  <div class="panel" id="agregarVideoPanel" style="margin-bottom:16px;position:static">
+    <h3><span><i class="bi bi-camera-video"></i> Agregar video</span></h3>
+    <div class="toolbar" style="margin:0 0 10px">
+      <select class="inp" id="avLib" onchange="avCambiarLib()">
+        <option value="hentai">Hentai</option>
+        <option value="animacion">Animación</option>
+        <option value="xxx">XXX</option>
+      </select>
+      <select class="inp" id="avSeccion" style="display:none">
+        <option value="largos">Largos</option>
+        <option value="cortos">Cortos</option>
+        <option value="favoritos">Favoritos</option>
+      </select>
+      <select class="inp" id="avCarpeta" onchange="avOnCarpetaChange()"></select>
+      <input class="inp" id="avCarpetaNueva" placeholder="Nombre de la carpeta nueva" style="display:none">
+      <input class="inp" id="avAnimacion" placeholder="Nombre de la animación" style="display:none">
+    </div>
+
+    <div class="toolbar" style="margin:0 0 6px">
+      <label class="btn2" style="cursor:pointer" for="avArchivo">
+        <i class="bi bi-upload"></i> Elegir archivo de video
+      </label>
+      <input type="file" id="avArchivo" accept="video/*" style="display:none" onchange="avArchivoElegido()">
+      <span id="avArchivoNombre" style="color:var(--muted2);font-size:12.5px"></span>
+      <button class="btn2 active" id="avBtnSubir" onclick="avSubir()" disabled><i class="bi bi-cloud-upload"></i> Subir</button>
+    </div>
+
+    <div class="toolbar" style="margin:0">
+      <div class="search-box" style="max-width:520px">
+        <i class="bi bi-link-45deg"></i>
+        <input class="inp" id="avUrl" placeholder="O pegar una URL (YouTube, etc.)" onkeydown="if(event.key==='Enter')avDescargarUrl()">
+      </div>
+      <button class="btn2 active" onclick="avDescargarUrl()"><i class="bi bi-download"></i> Descargar</button>
+    </div>
+
+    <div class="list" id="avQlist" style="margin-top:10px"></div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="grid" id="grid"><div class="state"><div class="spin"></div></div></div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <div class="panel">
+      <h3>
+        <span><i class="bi bi-list-check"></i> Cola de descargas</span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span id="qcount" style="color:var(--muted);font-weight:400"></span>
+          <button class="btn2" id="btnLimpiarCompletados" style="padding:4px 10px;font-size:11px;display:none;" onclick="limpiarCompletados()"><i class="bi bi-check2-all"></i> Limpiar completados</button>
+        </span>
+      </h3>
+      <div class="list" id="qlist"><div class="state" style="padding:20px">Sin descargas todavía.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-c">
+    <button class="x" onclick="cerrarModal()">✕</button>
+    <div class="modal-h" id="mh">
+      <div class="modal-poster" id="mposter"></div>
+      <div class="modal-info">
+        <h2 id="mtitulo"></h2>
+        <div class="alt" id="malt"></div>
+        <div class="chips" id="mchips"></div>
+      </div>
+    </div>
+    <div class="modal-b">
+      <div class="syn" id="msyn"></div>
+      <div class="eps-head" id="mepsHead"><b>Episodios</b>
+        <button class="btn2" style="padding:4px 10px;font-size:12px" onclick="toggleTodos()"><i class="bi bi-check2-all"></i> Todos</button>
+      </div>
+      <div class="eps" id="meps"></div>
+      <div class="gal-meta" id="mgalMeta"></div>
+      <div class="modal-foot" id="mfootDefault">
+        <button class="btn2" id="mdlcap" onclick="encolar('capitulos')" style="padding:9px 16px"><i class="bi bi-list-ol"></i> Descargar capítulos</button>
+        <button class="btn-primary2" id="mdlfull" onclick="encolar('completa')"><i class="bi bi-collection"></i> Descarga completa</button>
+      </div>
+      <div class="modal-foot" id="mfootGaleria" style="display:none">
+        <button class="btn-primary2" id="mdlgaleria" onclick="descargarDesdeModal()"><i class="bi bi-download"></i> Descargar galería</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:right" id="mfootHint">
+        <b>Capítulos</b>: solo los episodios marcados · <b>Completa</b>: todos + imagen, tags y descripción
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pv-wrap">
+  <div id="pv-hud-top" class="hidden">
+    <button class="pv-btn" onclick="cerrarViewer()"><i class="bi bi-arrow-left"></i></button>
+    <div class="pv-title" id="pv-title"></div>
+    <button class="pv-btn icon-only" onclick="toggleViewerMode()" title="Modo de lectura"><i class="bi bi-text-paragraph" id="pv-mode-icon"></i></button>
+    <button class="pv-btn icon-only" onclick="toggleViewerFullscreen()" title="Pantalla completa"><i class="bi bi-fullscreen" id="pv-fs-icon"></i></button>
+  </div>
+  <div id="pv-img-box">
+    <img id="pv-img" src="" alt="página">
+    <div class="pv-tz" id="pv-tz-prev"></div>
+    <div class="pv-tz" id="pv-tz-center"></div>
+    <div class="pv-tz" id="pv-tz-next"></div>
+  </div>
+  <div id="pv-scroll"></div>
+  <div id="pv-hud-bot" class="hidden">
+    <button class="pv-btn" onclick="navViewer(-1)" id="pv-prev"><i class="bi bi-chevron-left"></i> Ant</button>
+    <div class="pv-indicator" id="pv-indicator" onclick="promptViewerPage()">0/0</div>
+    <button class="pv-btn" onclick="navViewer(1)" id="pv-next">Sig <i class="bi bi-chevron-right"></i></button>
+  </div>
+  <div id="pv-fs-overlay" class="hidden">
+    <button id="pv-fs-btn" onclick="document.getElementById('pv-fs-overlay').classList.add('hidden');document.exitFullscreen().catch(()=>{})">
+      <i class="bi bi-fullscreen-exit"></i> Salir pantalla completa
+    </button>
+  </div>
+  <div class="pv-progress-track"><div class="pv-progress-bar" id="pv-progress" style="width:0%"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/static/js/zoom.js"></script>
+<script>
+let MODO='catalogo', PAGE=1, DETALLE=null, SELECC=new Set(), SITE='hentaila';
+// ── Preview viewer ──
+// Port of the manga reader in index.html (page/scroll modes, auto-hiding HUD,
+// touch zones, swipe, preload, go-to-page, fullscreen) plus zoom.js. Reading
+// progress and translation don't apply: these pages aren't in the library.
+let VIEWER_PAGES=[], VIEWER_TITLE='';
+const pv={
+  n:1, mode:localStorage.getItem('lector_modo')||'pagina',
+  isMobile:/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent),
+  hudVisible:false, hudTimeout:null, isFS:false, fsTimeout:null, setup:false,
+  scrollObs:null, mountObs:null, touchX:0, touchY:0,
+};
+const $pv=id=>document.getElementById(id);
+
+function abrirViewer(i){
+  if(!VIEWER_PAGES.length)return;
+  pv.n=i+1;
+  $pv('pv-title').textContent=VIEWER_TITLE;
+  $pv('pv-wrap').classList.add('open');
+  _pvSetup();
+  setViewerMode(pv.mode);
+  pvShowHUD();
+  if(pv.isMobile){clearTimeout(pv.hudTimeout);pv.hudTimeout=setTimeout(pvHideHUD,2500);}
+}
+function cerrarViewer(){
+  ImgZoom.reset();
+  if(pv.scrollObs){pv.scrollObs.disconnect();pv.scrollObs=null;}
+  if(pv.mountObs){pv.mountObs.disconnect();pv.mountObs=null;}
+  $pv('pv-scroll').innerHTML='';
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+  $pv('pv-wrap').classList.remove('open');
+  pvHideHUD();
+}
+function toggleViewerMode(){setViewerMode(pv.mode==='scroll'?'pagina':'scroll');}
+function setViewerMode(mode){
+  pv.mode=mode;
+  localStorage.setItem('lector_modo',mode);   // shared with the normal reader
+  ImgZoom.reset();
+  $pv('pv-wrap').classList.toggle('scroll-mode',mode==='scroll');
+  $pv('pv-mode-icon').className=mode==='scroll'?'bi bi-book-half':'bi bi-text-paragraph';
+  if(mode==='scroll')_pvRenderScroll();else pvGoTo(pv.n);
+}
+function _pvIndicator(n){
+  const total=VIEWER_PAGES.length;
+  $pv('pv-indicator').textContent=`${n} / ${total}`;
+  $pv('pv-progress').style.width=(total>1?((n-1)/(total-1))*100:100)+'%';
+}
+function pvGoTo(n){
+  if(n<1||n>VIEWER_PAGES.length)return;
+  pv.n=n;
+  ImgZoom.reset();
+  $pv('pv-img').src=VIEWER_PAGES[n-1];
+  _pvIndicator(n);
+  $pv('pv-prev').disabled=n<=1;
+  $pv('pv-next').disabled=n>=VIEWER_PAGES.length;
+  for(const k of [n+1,n+2,n-1]){ if(k>=1&&k<=VIEWER_PAGES.length){const im=new Image();im.src=VIEWER_PAGES[k-1];} }
+}
+function navViewer(d){pvGoTo(pv.n+d);}
+
+// Same virtualization as the normal reader: empty placeholders, and only the
+// pages near the viewport get a real <img>.
+function _pvRenderScroll(){
+  const cont=$pv('pv-scroll');
+  if(pv.scrollObs)pv.scrollObs.disconnect();
+  if(pv.mountObs)pv.mountObs.disconnect();
+  _pvIndicator(pv.n);
+  cont.innerHTML=VIEWER_PAGES.map((u,i)=>`<div class="pv-scroll-page" data-n="${i+1}" data-src="${esc(u)}"></div>`).join('');
+  const visibles=new Map();
+  pv.scrollObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const n=parseInt(e.target.dataset.n);
+      const area=e.intersectionRect.width*e.intersectionRect.height;
+      if(e.isIntersecting&&area>0)visibles.set(n,area);else visibles.delete(n);
+    });
+    let best=pv.n,bestA=-1;
+    visibles.forEach((a,n)=>{if(a>bestA){bestA=a;best=n;}});
+    if(best!==pv.n){pv.n=best;_pvIndicator(best);}
+  },{root:cont,threshold:[0,.1,.25,.5,.75,1]});
+  pv.mountObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const div=e.target, montada=div.dataset.mounted==='1';
+      if(e.isIntersecting&&!montada){
+        div.dataset.mounted='1';
+        const img=document.createElement('img');
+        img.decoding='async';
+        img.addEventListener('load',()=>{if(img.naturalWidth)div.style.aspectRatio=`${img.naturalWidth} / ${img.naturalHeight}`;},{once:true});
+        img.src=div.dataset.src;
+        div.appendChild(img);
+      }else if(!e.isIntersecting&&montada){
+        div.dataset.mounted='0';
+        if(ImgZoom.target()&&div.contains(ImgZoom.target()))ImgZoom.reset();
+        div.innerHTML='';
+      }
+    });
+  },{root:cont,rootMargin:'2000px 0px'});
+  cont.querySelectorAll('.pv-scroll-page').forEach(el=>{pv.scrollObs.observe(el);pv.mountObs.observe(el);});
+  requestAnimationFrame(()=>cont.querySelector(`.pv-scroll-page[data-n="${pv.n}"]`)?.scrollIntoView({block:'start'}));
+}
+function promptViewerPage(){
+  const n=parseInt(prompt(`Ir a página (1–${VIEWER_PAGES.length}):`,pv.n));
+  if(isNaN(n))return;
+  if(pv.mode==='scroll')$pv('pv-scroll').querySelector(`.pv-scroll-page[data-n="${n}"]`)?.scrollIntoView({block:'start'});
+  else pvGoTo(n);
+}
+
+function pvShowHUD(){
+  if(pv.isFS)return;
+  $pv('pv-hud-top').classList.remove('hidden');$pv('pv-hud-bot').classList.remove('hidden');
+  pv.hudVisible=true;
+  clearTimeout(pv.hudTimeout);
+  if(!pv.isMobile)pv.hudTimeout=setTimeout(pvHideHUD,3000);
+}
+function pvHideHUD(){$pv('pv-hud-top').classList.add('hidden');$pv('pv-hud-bot').classList.add('hidden');pv.hudVisible=false;}
+function _pvCenterTap(){
+  if(ImgZoom.blocksNav())return;
+  if(pv.isFS){
+    const ov=$pv('pv-fs-overlay');
+    ov.classList.toggle('hidden');
+    clearTimeout(pv.fsTimeout);
+    if(!ov.classList.contains('hidden'))pv.fsTimeout=setTimeout(()=>ov.classList.add('hidden'),3000);
+  }else pv.hudVisible?pvHideHUD():pvShowHUD();
+}
+function toggleViewerFullscreen(){
+  if(!document.fullscreenElement)$pv('pv-wrap').requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+  else document.exitFullscreen();
+}
+document.addEventListener('fullscreenchange',()=>{
+  pv.isFS=!!document.fullscreenElement;
+  $pv('pv-fs-icon').className=pv.isFS?'bi bi-fullscreen-exit':'bi bi-fullscreen';
+  $pv('pv-fs-overlay').classList.add('hidden');
+  if(pv.isFS)pvHideHUD();else if($pv('pv-wrap').classList.contains('open'))pvShowHUD();
+});
+
+function _pvSetup(){
+  if(pv.setup)return;
+  pv.setup=true;
+  ImgZoom.attach($pv('pv-wrap'),{selector:'#pv-img, .pv-scroll-page img',wheelNeedsCtrl:()=>pv.mode==='scroll'});
+  const box=$pv('pv-img-box');
+  if(pv.isMobile){
+    $pv('pv-tz-prev').addEventListener('click',()=>{if(!ImgZoom.blocksNav())navViewer(-1);});
+    $pv('pv-tz-next').addEventListener('click',()=>{if(!ImgZoom.blocksNav())navViewer(1);});
+    $pv('pv-tz-center').addEventListener('click',_pvCenterTap);
+    box.addEventListener('touchstart',e=>{pv.touchX=e.touches[0].clientX;pv.touchY=e.touches[0].clientY;},{passive:true});
+    box.addEventListener('touchend',e=>{
+      const dx=e.changedTouches[0].clientX-pv.touchX, dy=e.changedTouches[0].clientY-pv.touchY;
+      if(!ImgZoom.blocksNav()&&Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5)navViewer(dx>0?-1:1);
+    },{passive:true});
+  }else{
+    box.addEventListener('click',_pvCenterTap);
+  }
+  $pv('pv-scroll').addEventListener('click',_pvCenterTap);
+}
+
+document.addEventListener('keydown',e=>{
+  if(!$pv('pv-wrap').classList.contains('open'))return;
+  if(pv.mode==='scroll'){
+    const c=$pv('pv-scroll');
+    if(e.key==='ArrowDown'||e.key==='ArrowRight')c.scrollBy({top:c.clientHeight*.9,behavior:'smooth'});
+    if(e.key==='ArrowUp'||e.key==='ArrowLeft')c.scrollBy({top:-c.clientHeight*.9,behavior:'smooth'});
+  }else{
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')navViewer(-1);
+    if(e.key==='ArrowRight'||e.key==='ArrowDown')navViewer(1);
+  }
+  if(e.key==='f'||e.key==='F')toggleViewerFullscreen();
+  if(e.key==='Escape'){
+    if(ImgZoom.isZoomed())ImgZoom.reset();
+    else if(document.fullscreenElement)document.exitFullscreen();
+    else cerrarViewer();
+  }
+});
+
+// Sitios cuyo contenido es "galería de imágenes" (manga completo, sin capítulos)
+// en vez de episodios de video — comparten el mismo flujo de descarga directa.
+const SITIOS_GALERIA=['3hentai','hitomi'];
+
+// Idiomas soportados por hitomi.la (nombres de índice .nozomi reales) — se
+// pueden combinar varios a la vez (OR entre sí) via ?language= repetido.
+const HITOMI_IDIOMAS=[
+  ['spanish','Español'],['english','Inglés'],['japanese','Japonés'],['korean','Coreano'],
+];
+const IDIOMAS_SELECCIONADOS=new Set();
+
+function renderIdiomasHitomi(){
+  const box=document.getElementById('hitomiIdiomasBox');
+  box.querySelectorAll('.idioma-chip').forEach(el=>el.remove());
+  HITOMI_IDIOMAS.forEach(([val,label])=>{
+    const activo=IDIOMAS_SELECCIONADOS.has(val);
+    const chip=document.createElement('span');
+    chip.className='idioma-chip gal-chip'+(activo?' active':'');
+    chip.style.cursor='pointer';
+    if(activo){chip.style.background='var(--accent,#e91e63)';chip.style.color='#fff';}
+    chip.textContent=label;
+    chip.onclick=()=>{
+      if(IDIOMAS_SELECCIONADOS.has(val))IDIOMAS_SELECCIONADOS.delete(val);
+      else IDIOMAS_SELECCIONADOS.add(val);
+      renderIdiomasHitomi();
+      buscar(1);
+    };
+    box.appendChild(chip);
+  });
+}
+renderIdiomasHitomi();
+
+function cambiarSite(){
+  SITE=document.getElementById('site').value;
+  const esGaleria=SITIOS_GALERIA.includes(SITE);
+  document.getElementById('galeriaUrlBox').style.display=esGaleria?'flex':'none';
+  document.getElementById('hitomiFiltrosBox').style.display=SITE==='hitomi'?'flex':'none';
+  document.getElementById('hitomiIdiomasBox').style.display=SITE==='hitomi'?'flex':'none';
+  document.getElementById('tab-hub').style.display=esGaleria?'none':'';
+  document.getElementById('genre').style.display=esGaleria?'none':'';
+  const urlInput=document.getElementById('galeriaUrl');
+  urlInput.placeholder=SITE==='hitomi'
+    ?'Pegar URL o id de galería hitomi.la (ej: https://hitomi.la/galleries/123456.html)'
+    :'Pegar URL o id de galería 3hentai (ej: https://es.3hentai.net/d/609191)';
+  ocultarSugerencias();
+  buscar(1);
+}
+
+async function descargarGaleriaUrl(){
+  const input=document.getElementById('galeriaUrl');
+  const valor=input.value.trim();
+  if(!valor){toast('Pegá una URL o id de galería');return;}
+  const btn=event.target.closest('button');
+  await _ejecutarDescargaGaleria(SITE,valor,btn,()=>{input.value='';});
+}
+
+async function _ejecutarDescargaGaleria(site,slug,btn,onOk,forzar){
+  const orig=btn?btn.innerHTML:null;
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Descargando…';}
+  try{
+    const r=await fetch(`/api/descargas/${site}/descargar`,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({slug,forzar:!!forzar})});
+    const d=await r.json();
+    if(d.success){
+      toast(`✓ "${d.titulo}" — ${d.paginas_ok}/${d.paginas_total} páginas → ${d.seccion}`);
+      if(onOk)onOk();
+    }else if(d.ya_existe){
+      mostrarAvisoDuplicado(site,d,slug);
+    }else{
+      toast('Error: '+(d.error||'no se pudo descargar'));
+    }
+  }catch(e){toast('Error de conexión');}
+  if(btn){btn.disabled=false;btn.innerHTML=orig;}
+}
+
+function mostrarAvisoDuplicado(site,d,slug){
+  const m=d.manga||{};
+  const seccionUrl=m.seccion==='favoritos'?'favoritos':(m.seccion||'largos');
+  const irUrl=`/manga?abrir=${encodeURIComponent(m.nombre||'')}&seccion=${encodeURIComponent(seccionUrl)}`;
+  const box=document.createElement('div');
+  box.className='toast show';
+  // pointer-events:none explícito: la clase base .toast lo trae en none
+  // (pensada para el toast simple sin botones) y sin pisarlo acá los clics
+  // atravesaban este aviso hacia las cards de abajo — reportado 2026-09-21.
+  box.style.cssText='max-width:360px;display:flex;flex-direction:column;gap:8px;text-align:left;padding:14px 16px;pointer-events:auto';
+  // slug puede ser una URL completa (con "/" y ":") — se cablea el evento en
+  // JS en vez de interpolarlo en un atributo onclick para no romper el HTML.
+  box.innerHTML=`<div style="font-weight:600"><i class="bi bi-exclamation-triangle" style="color:var(--accent)"></i> Ya está en la biblioteca</div>
+    <div style="font-size:12.5px;color:var(--muted2)">"${esc(d.titulo||'')}"</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn2 btn-ir-manga" style="flex:1;justify-content:center"><i class="bi bi-box-arrow-up-right"></i> Ir al manga</button>
+      <button class="btn2 pink btn-descargar-igual" style="flex:1;justify-content:center"><i class="bi bi-arrow-repeat"></i> Descargar igual</button>
+    </div>`;
+  box.querySelector('.btn-ir-manga').addEventListener('click', () => { location.href = irUrl; });
+  box.querySelector('.btn-descargar-igual').addEventListener('click', () => {
+    box.remove();
+    _ejecutarDescargaGaleria(site, slug, null, null, true);
+  });
+  const cerrar=document.createElement('button');
+  cerrar.className='btn2';cerrar.style.cssText='position:absolute;top:-10px;right:-10px;padding:2px 8px;border-radius:50%';
+  cerrar.innerHTML='<i class="bi bi-x"></i>';
+  cerrar.addEventListener('click',()=>box.remove());
+  // NO tocar box.style.position: el CSS .toast ya trae position:fixed
+  // (anclado abajo-centro del viewport); pisarlo con "relative" lo dejaba
+  // en flujo normal del documento y aparecía miles de px más abajo, fuera
+  // de pantalla — bug real detectado probando este mismo cambio en vivo.
+  box.appendChild(cerrar);
+  document.body.appendChild(box);
+  // Sin auto-cierre: con 9s el usuario podía perderse el aviso de "ya
+  // existe" (confundido con "no me deja tocar nada" — reportado 2026-09-21)
+  // si no reaccionaba a tiempo. Se cierra solo con el botón X o eligiendo
+  // una de las dos acciones.
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function cargarGeneros(){
+  try{const r=await fetch('/api/descargas/generos');const d=await r.json();
+    const sel=document.getElementById('genre');
+    (d.generos||[]).forEach(g=>{const o=document.createElement('option');o.value=g.slug;o.textContent=g.nombre;sel.appendChild(o);});
+  }catch(e){}
+}
+
+function setModo(m){MODO=m;document.getElementById('tab-cat').classList.toggle('active',m==='catalogo');document.getElementById('tab-hub').classList.toggle('active',m==='hub');buscar(1);}
+
+// ── Autocompletado de tags (solo hitomi) ────────────────────────────────────
+let _sugTimer=null, _sugIndex=-1, _sugItems=[];
+
+function onQInput(){
+  if(SITE!=='hitomi'){ocultarSugerencias();return;}
+  clearTimeout(_sugTimer);
+  const q=document.getElementById('q').value;
+  _sugTimer=setTimeout(()=>cargarSugerencias(q),200);
+}
+
+async function cargarSugerencias(q){
+  const ultimo=q.split(' ').pop();
+  if(!ultimo || ultimo.replace('-','').length<2){ocultarSugerencias();return;}
+  try{
+    const r=await fetch('/api/descargas/hitomi/sugerencias?q='+encodeURIComponent(q));
+    const d=await r.json();
+    _sugItems=d.items||[];
+    _sugIndex=-1;
+    renderSugerencias(d.negativo);
+  }catch(e){ocultarSugerencias();}
+}
+
+function renderSugerencias(negativo){
+  const box=document.getElementById('suggestBox');
+  if(!_sugItems.length){ocultarSugerencias();return;}
+  box.innerHTML=_sugItems.map((it,i)=>`
+    <div class="suggest-item" data-i="${i}" onmousedown="elegirSugerencia(${i})">
+      <span>${negativo?'-':''}${esc(it.nombre)} <span class="ns">(${esc(it.namespace)})</span></span>
+      <span class="cant">${it.cantidad}</span>
+    </div>`).join('');
+  box.classList.add('show');
+}
+
+function ocultarSugerencias(){
+  document.getElementById('suggestBox').classList.remove('show');
+  _sugItems=[];_sugIndex=-1;
+}
+
+function elegirSugerencia(i){
+  const it=_sugItems[i];
+  if(!it)return;
+  const input=document.getElementById('q');
+  const partes=input.value.split(' ');
+  const negativo=partes[partes.length-1].startsWith('-');
+  const tag=`${it.namespace}:${it.nombre}`.replace(/ /g,'_');
+  partes[partes.length-1]=(negativo?'-':'')+tag;
+  input.value=partes.join(' ')+' ';
+  ocultarSugerencias();
+  input.focus();
+}
+
+function onQKeydown(event){
+  const box=document.getElementById('suggestBox');
+  const abierto=box.classList.contains('show');
+  if(event.key==='Enter'){
+    if(abierto && _sugIndex>=0){event.preventDefault();elegirSugerencia(_sugIndex);return;}
+    ocultarSugerencias();buscar(1);return;
+  }
+  if(!abierto)return;
+  if(event.key==='ArrowDown'){event.preventDefault();_sugIndex=Math.min(_sugIndex+1,_sugItems.length-1);marcarActivo();}
+  else if(event.key==='ArrowUp'){event.preventDefault();_sugIndex=Math.max(_sugIndex-1,-1);marcarActivo();}
+  else if(event.key==='Escape'){ocultarSugerencias();}
+}
+
+function marcarActivo(){
+  document.querySelectorAll('#suggestBox .suggest-item').forEach((el,i)=>el.classList.toggle('active',i===_sugIndex));
+}
+
+async function buscar(page){
+  PAGE=page||1;
+  const grid=document.getElementById('grid');
+  grid.innerHTML='<div class="state"><div class="spin"></div></div>';
+  document.getElementById('pager').innerHTML='';
+  const q=document.getElementById('q').value.trim();
+  const genre=document.getElementById('genre').value;
+  const params=new URLSearchParams({site:SITE,seccion:MODO,page:PAGE});
+  if(q)params.set('q',q); if(genre)params.set('genre',genre);
+  if(SITE==='hitomi'){
+    if(document.getElementById('hitomiPopularidad').checked)params.set('orden','popularidad');
+    const minP=document.getElementById('hitomiMinPag').value;
+    const maxP=document.getElementById('hitomiMaxPag').value;
+    if(minP)params.set('min_pages',minP);
+    if(maxP)params.set('max_pages',maxP);
+    if(document.getElementById('hitomiModoOr').checked)params.set('modo','or');
+    IDIOMAS_SELECCIONADOS.forEach(lang=>params.append('language',lang));
+  }
+  try{
+    const r=await fetch('/api/descargas/buscar?'+params);
+    const d=await r.json();
+    if(d.error){grid.innerHTML='<div class="state">⚠ '+esc(d.error)+'</div>';return;}
+    if(!d.items||!d.items.length){grid.innerHTML='<div class="state">Sin resultados.</div>';return;}
+    const esGaleria=SITIOS_GALERIA.includes(SITE);
+    grid.className='grid'+(esGaleria?' grid-galeria':'');
+    if(esGaleria){
+      grid.innerHTML=d.items.map(it=>`
+        <div class="gcard" onclick='abrirGaleria(${JSON.stringify(it.slug)})'>
+          <div class="gthumb" style="background-image:url('${esc(it.poster)}')">
+            ${it.tipo?`<span class="badge-tipo">${esc(it.tipo)}</span>`:''}
+          </div>
+          <div class="gbody">
+            <div class="gt">${esc(it.titulo)}</div>
+            <div class="gmeta">
+              ${it.year?`<span>${esc(it.year)}</span>`:''}
+              ${it.paginas_total?`<span>${it.paginas_total}P</span>`:''}
+              ${it.idiomas&&it.idiomas.length?`<span>${esc(it.idiomas[0])}</span>`:''}
+            </div>
+            ${it.generos&&it.generos.length?`<div class="gtags">${it.generos.slice(0,5).map(g=>`<span>${esc(g)}</span>`).join('')}</div>`:''}
+            <div class="gfoot">
+              <button title="No volver a mostrar" onclick='event.stopPropagation();ocultar(${JSON.stringify(it.titulo)},this)'><i class="bi bi-eye-slash"></i></button>
+              <button class="${it.ya_existe?'':'primary'}" onclick='event.stopPropagation();descargarGaleriaDirecto(${JSON.stringify(it.slug)},this)'>${it.ya_existe?'<i class="bi bi-check2"></i> Descargado':'<i class="bi bi-download"></i> Descargar'}</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }else{
+      grid.innerHTML=d.items.map(it=>`
+        <div class="card" onclick='abrir(${JSON.stringify(it.slug)})'>
+          <div class="thumb" style="background-image:url('${esc(it.poster)}')">
+            ${it.tipo?`<span class="badge-tipo">${esc(it.tipo)}</span>`:''}
+            <button class="btn-ban" title="No volver a mostrar" onclick='event.stopPropagation();ocultar(${JSON.stringify(it.titulo)},this)'><i class="bi bi-eye-slash"></i></button>
+          </div>
+          <div class="body">
+            <div class="t">${esc(it.titulo)}</div>
+            <div class="meta">${it.year?`<span>${esc(it.year)}</span>`:''}${it.generos&&it.generos.length?`<span>· ${esc(it.generos.slice(0,2).join(', '))}</span>`:''}</div>
+          </div>
+        </div>`).join('');
+    }
+    renderPager(d);
+  }catch(e){grid.innerHTML='<div class="state">Error de conexión.</div>';}
+}
+
+async function descargarGaleriaDirecto(slug,btn){
+  await _ejecutarDescargaGaleria(SITE,slug,btn,null);
+}
+
+async function ocultar(titulo,btn){
+  const card=btn.closest('.card');
+  try{
+    const r=await fetch('/api/descargas/blacklist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo})});
+    const d=await r.json();
+    if(d.success){card.remove();toast('Oculto: no volverá a aparecer');}
+    else{toast('Error: '+(d.error||'no se pudo ocultar'));}
+  }catch(e){toast('Error de conexión');}
+}
+
+function renderPager(d){
+  if(MODO==='hub'||d.pages<=1)return;
+  const p=document.getElementById('pager');
+  p.innerHTML=`<button class="btn2" ${PAGE<=1?'disabled':''} onclick="buscar(${PAGE-1})"><i class="bi bi-chevron-left"></i></button>
+    <span style="color:var(--muted2);font-size:13px">Página ${d.page} / ${d.pages} · ${d.total}${d.total_aproximado?'+':''} títulos${d.total_aproximado?' (filtro de páginas: conteo parcial)':''}</span>
+    <button class="btn2" ${PAGE>=d.pages?'disabled':''} onclick="buscar(${PAGE+1})"><i class="bi bi-chevron-right"></i></button>`;
+}
+
+async function abrirGaleria(slug){
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('mepsHead').style.display='none';
+  document.getElementById('meps').innerHTML='';
+  document.getElementById('mfootDefault').style.display='none';
+  document.getElementById('mfootGaleria').style.display='flex';
+  document.getElementById('mfootHint').style.display='none';
+  document.getElementById('mgalMeta').innerHTML='<div class="spin"></div>';
+  document.getElementById('mtitulo').textContent='Cargando…';
+  document.getElementById('malt').textContent='';document.getElementById('mchips').innerHTML='';document.getElementById('msyn').textContent='';
+  DETALLE=null;
+  try{
+    const r=await fetch(`/api/descargas/detalle?site=${SITE}&slug=`+encodeURIComponent(slug));
+    const d=await r.json();
+    if(d.error){toast('Error: '+d.error);cerrarModal();return;}
+    DETALLE=d;
+    document.getElementById('mtitulo').textContent=d.titulo;
+    document.getElementById('malt').textContent=d.titulo_alt||'';
+    document.getElementById('mposter').style.backgroundImage=`url('${d.poster}')`;
+    document.getElementById('mh').style.backgroundImage=`linear-gradient(180deg,rgba(24,24,24,.5),var(--surface)),url('${d.backdrop||d.poster}')`;
+    const chips=[];
+    if(d.tipo)chips.push(`<span class="chip">${esc(d.tipo)}</span>`);
+    if(d.year)chips.push(`<span class="chip">${esc(d.year)}</span>`);
+    if(d.paginas_total)chips.push(`<span class="chip">${d.paginas_total}P</span>`);
+    document.getElementById('mchips').innerHTML=chips.join('');
+    document.getElementById('msyn').textContent=d.sinopsis||'';
+
+    const fila=(lbl,ns,items)=>{
+      if(!items||!items.length)return '';
+      const cls=ns==='female'?'female':ns==='male'?'male':'';
+      return `<div class="gal-row"><span class="lbl">${lbl}</span>${items.map(v=>
+        `<span class="gal-chip ${cls}" onclick='buscarPorChip(${JSON.stringify(ns)},${JSON.stringify(v)})'>${esc(v)}</span>`
+      ).join('')}</div>`;
+    };
+    const filaTags=(lbl,items)=>{
+      if(!items||!items.length)return '';
+      return `<div class="gal-row"><span class="lbl">${lbl}</span>${items.map(({tag,ns})=>
+        `<span class="gal-chip ${ns==='female'?'female':ns==='male'?'male':''}" onclick='buscarPorChip(${JSON.stringify(ns)},${JSON.stringify(tag)})'>${esc(tag)}</span>`
+      ).join('')}</div>`;
+    };
+    let metaHtml='';
+    metaHtml+=`<div class="gal-info">${d.year?`<span>${esc(d.year)}</span>`:''}${d.paginas_total?`<span>${d.paginas_total} páginas</span>`:''}</div>`;
+    metaHtml+=fila('Artista', 'artist', d.artistas);
+    metaHtml+=fila('Grupo', 'group', d.grupos);
+    metaHtml+=fila('Serie', 'series', d.parodias);
+    metaHtml+=fila('Personaje', 'character', d.personajes);
+    metaHtml+=fila('Idioma', 'language', d.idiomas);
+    metaHtml+=filaTags('Tag', d.generos_ns);
+    if(d.paginas_preview&&d.paginas_preview.length){
+      // Viewer uses the full-size pages (all of them) when available; the
+      // grid keeps the light thumbnails.
+      VIEWER_PAGES=(d.paginas_viewer&&d.paginas_viewer.length)?d.paginas_viewer:d.paginas_preview;
+      VIEWER_TITLE=d.titulo||'';
+      metaHtml+=`<div class="gal-row" style="align-items:flex-start"><span class="lbl">Vista previa (${d.paginas_preview.length} pág.)</span></div>`;
+      metaHtml+=`<div class="gal-pages">${d.paginas_preview.map((u,i)=>`<img src="${esc(u)}" loading="lazy" onclick="abrirViewer(${i})">`).join('')}</div>`;
+    }
+    document.getElementById('mgalMeta').innerHTML=metaHtml;
+  }catch(e){toast('Error de conexión');cerrarModal();}
+}
+
+async function descargarDesdeModal(){
+  if(!DETALLE)return;
+  const btn=document.getElementById('mdlgaleria');
+  await _ejecutarDescargaGaleria(SITE,DETALLE.slug,btn,()=>cerrarModal());
+}
+
+function buscarPorChip(ns,valor){
+  cerrarModal();
+  document.getElementById('q').value=`${ns}:${valor.replace(/ /g,'_')}`;
+  buscar(1);
+}
+
+async function abrir(slug){
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('mepsHead').style.display='';
+  document.getElementById('mfootDefault').style.display='flex';
+  document.getElementById('mfootGaleria').style.display='none';
+  document.getElementById('mfootHint').style.display='';
+  document.getElementById('mgalMeta').innerHTML='';
+  document.getElementById('meps').innerHTML='<div class="spin"></div>';
+  document.getElementById('mtitulo').textContent='Cargando…';
+  document.getElementById('malt').textContent='';document.getElementById('mchips').innerHTML='';document.getElementById('msyn').textContent='';
+  SELECC=new Set();
+  try{
+    const r=await fetch('/api/descargas/detalle?slug='+encodeURIComponent(slug));
+    const d=await r.json();
+    if(d.error){toast('Error: '+d.error);cerrarModal();return;}
+    DETALLE=d;
+    document.getElementById('mtitulo').textContent=d.titulo;
+    document.getElementById('malt').textContent=d.titulo_alt||'';
+    document.getElementById('mposter').style.backgroundImage=`url('${d.poster}')`;
+    document.getElementById('mh').style.backgroundImage=`linear-gradient(180deg,rgba(24,24,24,.5),var(--surface)),url('${d.backdrop||d.poster}')`;
+    const chips=[];
+    if(d.tipo)chips.push(`<span class="chip">${esc(d.tipo)}</span>`);
+    if(d.year)chips.push(`<span class="chip">${esc(d.year)}</span>`);
+    (d.generos||[]).forEach(g=>chips.push(`<span class="chip g">${esc(g)}</span>`));
+    document.getElementById('mchips').innerHTML=chips.join('');
+    document.getElementById('msyn').textContent=d.sinopsis||'';
+    const eps=d.episodios&&d.episodios.length?d.episodios:[...Array(d.episodesCount||0)].map((_,i)=>i+1);
+    document.getElementById('meps').innerHTML=eps.map(n=>`<div class="ep" data-n="${n}" onclick="selEp(${n},this)">Ep ${n}</div>`).join('')||'<span style="color:var(--muted)">Sin episodios</span>';
+    actualizarBtn();
+  }catch(e){toast('Error de conexión');cerrarModal();}
+}
+function selEp(n,el){if(SELECC.has(n)){SELECC.delete(n);el.classList.remove('sel');}else{SELECC.add(n);el.classList.add('sel');}actualizarBtn();}
+function toggleTodos(){
+  const eps=[...document.querySelectorAll('#meps .ep')];
+  const all=eps.every(e=>e.classList.contains('sel'));
+  SELECC=new Set(); eps.forEach(e=>{if(all){e.classList.remove('sel');}else{e.classList.add('sel');SELECC.add(+e.dataset.n);}});
+  actualizarBtn();
+}
+function actualizarBtn(){const b=document.getElementById('mdlcap');b.disabled=SELECC.size===0;b.innerHTML=`<i class="bi bi-list-ol"></i> Descargar capítulos ${SELECC.size||''}`.trim();}
+function cerrarModal(){document.getElementById('modal').classList.remove('show');}
+
+async function encolar(modo){
+  if(!DETALLE)return;
+  if(modo==='capitulos'&&!SELECC.size){toast('Marcá al menos un episodio');return;}
+  const bc=document.getElementById('mdlcap'),bf=document.getElementById('mdlfull');
+  bc.disabled=bf.disabled=true;
+  const b=modo==='completa'?bf:bc;const o=b.innerHTML;b.innerHTML='<i class="bi bi-hourglass-split"></i> Encolando…';
+  try{
+    const r=await fetch('/api/descargas/encolar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({site:'hentaila',slug:DETALLE.slug,modo,episodios:[...SELECC]})});
+    const d=await r.json();
+    if(d.success){toast(modo==='completa'?`✓ Descarga completa: ${d.encolados} episodio(s) + info`:`✓ ${d.encolados} episodio(s) en cola`);cerrarModal();}
+    else toast('Error: '+(d.error||'no se pudo'));
+  }catch(e){toast('Error de conexión');}
+  b.innerHTML=o;bf.disabled=false;actualizarBtn();
+}
+
+// ── Cola en tiempo real vía SSE (snapshot inicial + eventos job/removed) ───────
+let _sse=null, _jobsMap=new Map(), _colaOrden=[];
+
+function conectarSSE(){
+  if(_sse)_sse.close();
+  _sse=new EventSource('/api/descargas/eventos');
+  _sse.onmessage=(ev)=>{
+    try{
+      const msg=JSON.parse(ev.data);
+      if(msg.tipo==='snapshot'){
+        _colaOrden=(msg.data||[]).map(j=>j.id);
+        _jobsMap=new Map((msg.data||[]).map(j=>[j.id,j]));
+      }else if(msg.tipo==='job'){
+        if(!_jobsMap.has(msg.data.id))_colaOrden.unshift(msg.data.id);
+        _jobsMap.set(msg.data.id,msg.data);
+      }else if(msg.tipo==='removed'){
+        _jobsMap.delete(msg.data.id);
+        _colaOrden=_colaOrden.filter(id=>id!==msg.data.id);
+      }
+      renderCola();
+    }catch(e){}
+  };
+}
+
+function renderCola(){
+    const jobs=_colaOrden.map(id=>_jobsMap.get(id)).filter(Boolean);
+    document.getElementById('qcount').textContent=jobs.length?`${jobs.length}`:'';
+    document.getElementById('btnLimpiarCompletados').style.display=
+      jobs.some(j=>j.estado==='completado')?'inline-flex':'none';
+    const l=document.getElementById('qlist');
+    if(!jobs.length){l.innerHTML='<div class="state" style="padding:20px">Sin descargas todavía.</div>';return;}
+    l.innerHTML=jobs.map(j=>{
+      const acts=[];
+      if(['pendiente','descargando'].includes(j.estado))acts.push(`<button class="jbtn dgr" onclick="jobAccion('${j.id}','cancelar')">Cancelar</button>`);
+      if(['error','cancelado'].includes(j.estado))acts.push(`<button class="jbtn" onclick="jobAccion('${j.id}','reintentar')">Reintentar</button>`);
+      if(['completado','error','cancelado'].includes(j.estado))acts.push(`<button class="jbtn dgr" onclick="jobAccion('${j.id}','quitar')">Quitar</button>`);
+      return `<div class="job">
+        <div class="jt"><span>${esc(j.titulo)} · Ep ${j.numero}</span></div>
+        <div class="jsub"><span class="st ${j.estado}">${j.estado}</span>${j.servidor?`<span>${esc(j.servidor)}</span>`:''}${j.velocidad&&j.estado==='descargando'?`<span>${esc(j.velocidad)}</span>`:''}${j.error?`<span style="color:#ef7b78;display:block;white-space:normal;word-break:break-word" title="${esc(j.error)}">⚠ ${esc(j.error)}</span>`:''}</div>
+        <div class="bar"><i style="width:${j.progreso||0}%;background:${j.estado==='completado'?'var(--success)':j.estado==='error'?'var(--danger)':'var(--accent)'}"></i></div>
+        ${acts.length?`<div class="jact">${acts.join('')}</div>`:''}
+      </div>`;
+    }).join('');
+}
+async function jobAccion(id,acc){
+  await fetch('/api/descargas/cola/accion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,accion:acc})});
+}
+async function limpiarCompletados(){
+  const btn=document.getElementById('btnLimpiarCompletados');
+  btn.disabled=true;
+  try{
+    const r=await fetch('/api/descargas/cola/limpiar',{method:'POST'});
+    const d=await r.json();
+    toast(d.success?`✓ ${d.quitados} completados quitados de la cola`:'Error al limpiar');
+  }catch(e){toast('Error de conexión');}
+  btn.disabled=false;
+}
+async function regenerarPreviews(btn){
+  const o=btn.innerHTML;btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Generando…';
+  try{
+    const r=await fetch('/api/descargas/previews/generar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({forzar:true})});const d=await r.json();
+    if(d.success){const s=d.stats;toast(`✓ ${s.generadas} regeneradas desde portada, ${s.errores} fallos`);}
+    else toast('Error: '+(d.error||''));
+  }catch(e){toast('Error de conexión');}
+  btn.disabled=false;btn.innerHTML=o;
+}
+
+// ── Novedades: episodios nuevos de series que ya tenemos ──────────────────────
+async function cargarNovedades(){
+  try{
+    const r=await fetch('/api/descargas/novedades');
+    const d=await r.json();
+    const novedades=d.novedades||[];
+    if(!novedades.length)return;
+    document.getElementById('novedadesTitulo').textContent=
+      `${novedades.length} serie${novedades.length!==1?'s':''} tuya${novedades.length!==1?'s tienen':' tiene'} episodios nuevos`;
+    document.getElementById('novedadesList').innerHTML=novedades.map((n,i)=>`
+      <div class="novedad-item" id="nov-${i}">
+        <span class="nom">${esc(n.nombre)}</span>
+        <span class="eps">tenías ${n.episodios_tenidos} · hay ${n.episodio_nuevo}</span>
+        <button onclick="descargarNovedad(${i})"><i class="bi bi-download"></i> Descargar ${n.episodios_faltantes.length>1?`(${n.episodios_faltantes.length})`:''}</button>
+      </div>`).join('');
+    window._novedades=novedades;
+    document.getElementById('novedadesBanner').style.display='block';
+  }catch(e){}
+}
+
+async function descargarNovedad(i){
+  const n=window._novedades[i];
+  const item=document.getElementById(`nov-${i}`);
+  const btn=item.querySelector('button');
+  btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Encolando…';
+  try{
+    const r=await fetch('/api/descargas/encolar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({site:'hentaila',slug:n.slug,modo:'capitulos',episodios:n.episodios_faltantes})});
+    const d=await r.json();
+    if(d.success){
+      toast(`✓ ${d.encolados} episodio(s) de "${n.nombre}" en cola`);
+      item.style.opacity='.5';
+      btn.innerHTML='<i class="bi bi-check2"></i> En cola';
+    }else{
+      toast('Error: '+(d.error||'no se pudo'));
+      btn.disabled=false;btn.innerHTML='<i class="bi bi-download"></i> Reintentar';
+    }
+  }catch(e){
+    toast('Error de conexión');
+    btn.disabled=false;btn.innerHTML='<i class="bi bi-download"></i> Reintentar';
+  }
+}
+
+// ── Agregar video: subir archivo o descargar por URL ───────────────────────────
+let avCarpetas=[];
+
+async function avCambiarLib(){
+  const lib=document.getElementById('avLib').value;
+  document.getElementById('avSeccion').style.display=lib==='hentai'?'':'none';
+  document.getElementById('avAnimacion').style.display='none';
+  document.getElementById('avCarpetaNueva').style.display='none';
+  const sel=document.getElementById('avCarpeta');
+  sel.innerHTML='<option value="">Cargando…</option>';
+  try{
+    const r=await fetch(`/api/video/agregar/carpetas?lib=${lib}`);
+    const d=await r.json();
+    avCarpetas=d.carpetas||[];
+  }catch(e){avCarpetas=[];}
+  sel.innerHTML='<option value="__nueva__">+ Carpeta nueva…</option>'+
+    avCarpetas.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  avOnCarpetaChange();
+}
+function avOnCarpetaChange(){
+  const lib=document.getElementById('avLib').value;
+  const esNueva=document.getElementById('avCarpeta').value==='__nueva__';
+  document.getElementById('avCarpetaNueva').style.display=esNueva?'':'none';
+  document.getElementById('avAnimacion').style.display=(lib==='animacion'&&!esNueva)?'':'none';
+}
+function avNombreCarpeta(){
+  const sel=document.getElementById('avCarpeta').value;
+  if(sel==='__nueva__')return document.getElementById('avCarpetaNueva').value.trim();
+  return sel;
+}
+function avDestinoBody(){
+  const lib=document.getElementById('avLib').value;
+  const carpeta=avNombreCarpeta();
+  if(!carpeta){toast('Elegí o escribí una carpeta');return null;}
+  const body={lib,carpeta};
+  if(lib==='hentai')body.seccion=document.getElementById('avSeccion').value;
+  if(lib==='animacion'){
+    const anim=document.getElementById('avAnimacion').value.trim();
+    if(anim)body.animacion=anim;
+  }
+  return body;
+}
+function avArchivoElegido(){
+  const f=document.getElementById('avArchivo').files[0];
+  document.getElementById('avArchivoNombre').textContent=f?f.name:'';
+  document.getElementById('avBtnSubir').disabled=!f;
+}
+async function avSubir(){
+  const f=document.getElementById('avArchivo').files[0];
+  if(!f)return;
+  const destino=avDestinoBody();
+  if(!destino)return;
+  const btn=document.getElementById('avBtnSubir');
+  btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Subiendo…';
+  const fd=new FormData();
+  fd.append('video',f);
+  Object.entries(destino).forEach(([k,v])=>fd.append(k,v));
+  try{
+    const r=await fetch('/api/video/agregar/subir',{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.id){
+      toast('✓ Subida en cola');
+      document.getElementById('avArchivo').value='';
+      document.getElementById('avArchivoNombre').textContent='';
+    }else toast('Error: '+(d.error||'no se pudo'));
+  }catch(e){toast('Error de conexión');}
+  btn.disabled=false;btn.innerHTML='<i class="bi bi-cloud-upload"></i> Subir';
+}
+async function avDescargarUrl(){
+  const url=document.getElementById('avUrl').value.trim();
+  if(!url){toast('Pegá una URL primero');return;}
+  const destino=avDestinoBody();
+  if(!destino)return;
+  destino.url=url;
+  try{
+    const r=await fetch('/api/video/agregar/url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(destino)});
+    const d=await r.json();
+    if(d.id){toast('✓ Descarga en cola');document.getElementById('avUrl').value='';}
+    else toast('Error: '+(d.error||'no se pudo'));
+  }catch(e){toast('Error de conexión');}
+}
+
+let _avSse=null,_avJobsMap=new Map(),_avOrden=[];
+function avConectarSSE(){
+  if(_avSse)_avSse.close();
+  _avSse=new EventSource('/api/video/agregar/eventos');
+  _avSse.onmessage=(ev)=>{
+    try{
+      const msg=JSON.parse(ev.data);
+      if(msg.tipo==='snapshot'){
+        _avOrden=(msg.data||[]).map(j=>j.id);
+        _avJobsMap=new Map((msg.data||[]).map(j=>[j.id,j]));
+      }else if(msg.tipo==='job'){
+        if(!_avJobsMap.has(msg.data.id))_avOrden.unshift(msg.data.id);
+        _avJobsMap.set(msg.data.id,msg.data);
+      }
+      avRenderCola();
+    }catch(e){}
+  };
+}
+function avRenderCola(){
+  const jobs=_avOrden.map(id=>_avJobsMap.get(id)).filter(Boolean);
+  const l=document.getElementById('avQlist');
+  if(!jobs.length){l.innerHTML='';return;}
+  l.innerHTML=jobs.map(j=>{
+    const nombre=j.nombre_final||j.url||j.carpeta;
+    const acts=['pendiente','descargando'].includes(j.estado)
+      ?`<div class="jact"><button class="jbtn dgr" onclick="avCancelar('${j.id}')">Cancelar</button></div>`:'';
+    return `<div class="job">
+      <div class="jt"><span>${esc(nombre)} · ${esc(j.lib)}/${esc(j.carpeta)}</span></div>
+      <div class="jsub"><span class="st ${j.estado}">${j.estado}</span>${j.velocidad&&j.estado==='descargando'?`<span>${esc(j.velocidad)}</span>`:''}${j.error?`<span style="color:#ef7b78;display:block;white-space:normal;word-break:break-word" title="${esc(j.error)}">⚠ ${esc(j.error)}</span>`:''}</div>
+      <div class="bar"><i style="width:${j.progreso||0}%;background:${j.estado==='completado'?'var(--success)':j.estado==='error'?'var(--danger)':'var(--accent)'}"></i></div>
+      ${acts}
+    </div>`;
+  }).join('');
+}
+async function avCancelar(id){
+  await fetch('/api/video/agregar/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+}
+
+cargarGeneros();
+buscar(1);
+conectarSSE();
+cargarNovedades();
+avCambiarLib();
+avConectarSSE();
+</script>
+<script>
+// PWA: el service worker cachea el shell y las miniaturas ya vistas.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

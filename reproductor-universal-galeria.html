@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media Library</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+:root {
+  --bg:           #0d0d0d;
+  --surface:      #161616;
+  --surface2:     #1e1e1e;
+  --border:       rgba(255,255,255,0.07);
+  --text:         #e2e2e2;
+  --muted:        #555;
+  --c-hentai:     #9c27b0;
+  --c-anim:       #4a148c;
+  --c-xxx:        #e64a19;
+  --c-manga:      #2e7d32;
+  --radius:       10px;
+  --card-radius:  12px;
+  --nav-h:        62px;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  margin: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Header búsqueda ─────────────────────────────────────────────────────── */
+.top-bar {
+  background: #000;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.search-wrap {
+  flex: 1;
+  max-width: 440px;
+  position: relative;
+}
+.search-wrap i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 14px;
+}
+.search-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 7px 14px 7px 34px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 180ms;
+}
+.search-input:focus { border-color: rgba(255,255,255,0.2); }
+.search-input::placeholder { color: var(--muted); }
+
+/* ── Área de contenido ───────────────────────────────────────────────────── */
+.content-area {
+  height: calc(100dvh - 52px - var(--nav-h));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
+  padding: 14px 14px 0;
+}
+.content-area::-webkit-scrollbar { width: 4px; }
+.content-area::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+
+/* ── Secciones ───────────────────────────────────────────────────────────── */
+.content-section { display: none; }
+.content-section.active { display: block; }
+
+/* ── Tabs ────────────────────────────────────────────────────────────────── */
+.nav-tabs { border-bottom: 1px solid var(--border); margin-bottom: 14px; gap: 4px; }
+.nav-tabs .nav-link {
+  color: var(--muted);
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+}
+.nav-tabs .nav-link.active { color: var(--text); background: var(--surface2); }
+.nav-tabs .nav-link:hover { color: var(--text); }
+.tab-content { padding-bottom: 16px; }
+
+/* ── Grid de tarjetas ────────────────────────────────────────────────────── */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  padding-bottom: 10px;
+}
+@media (max-width: 480px) {
+  .media-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Tarjeta ─────────────────────────────────────────────────────────────── */
+.media-card {
+  position: relative;
+  aspect-ratio: 2/3;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1.5px solid transparent;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.media-card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.media-card.t-hentai { border-color: var(--c-hentai); }
+.media-card.t-anim   { border-color: var(--c-anim); }
+.media-card.t-xxx    { border-color: var(--c-xxx); }
+.media-card.t-manga  { border-color: var(--c-manga); }
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Placeholder color mientras carga */
+  background: var(--surface2);
+}
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.card-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: rgba(230,74,25,0.9);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+
+/* ── Seguir viendo (fila horizontal) ─────────────────────────────────────── */
+.resume-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 2px 0 8px;
+}
+.resume-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) transparent;
+}
+.resume-row::-webkit-scrollbar { height: 4px; }
+.resume-row::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+.resume-card {
+  flex-shrink: 0;
+  width: 150px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  transition: transform 150ms, border-color 150ms;
+}
+.resume-card:hover { transform: translateY(-2px); }
+.resume-card.t-hentai:hover { border-color: var(--c-hentai); }
+.resume-card.t-anim:hover   { border-color: var(--c-anim); }
+.resume-card.t-xxx:hover    { border-color: var(--c-xxx); }
+.resume-cover {
+  width: 100%;
+  aspect-ratio: 16/10;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface2);
+}
+.resume-cover img { width: 100%; height: 100%; object-fit: cover; }
+.resume-cover-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 26px;
+}
+.resume-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.15); }
+.resume-fill { height: 100%; background: var(--c-xxx); }
+.resume-type-badge {
+  position: absolute; top: 5px; left: 5px;
+  font-size: 9px; font-weight: 700; color: #fff;
+  padding: 2px 6px; border-radius: 10px;
+}
+.resume-name {
+  font-size: 11px; font-weight: 500; color: var(--text);
+  padding: 6px 8px 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.resume-sub { font-size: 9px; color: var(--muted); padding: 0 8px 7px; }
+
+/* ── Botón favorito en cards de hentai ───────────────────────────────────── */
+.card-fav-btn {
+  position: absolute;
+  top: 7px; left: 7px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #ccc;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 120ms, color 120ms;
+}
+.card-fav-btn:hover { background: rgba(0,0,0,0.85); color: #f5a623; }
+.card-fav-btn.is-fav { color: #f5a623; }
+
+/* ── Encabezado de artista ───────────────────────────────────────────────── */
+.section-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.back-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.back-btn-sm {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+.back-btn-sm:hover { background: #2a2a2a; }
+
+/* ── Estado vacío / cargando ─────────────────────────────────────────────── */
+.state-placeholder {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.state-placeholder i { font-size: 32px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+/* ── Navbar inferior ─────────────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: #000;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 200;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+  transition: color 180ms;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
+}
+.nav-btn i { font-size: 22px; }
+.nav-btn.active-hentai { color: var(--c-hentai); border-top-color: var(--c-hentai); }
+.nav-btn.active-anim   { color: var(--c-anim);   border-top-color: var(--c-anim); }
+.nav-btn.active-xxx    { color: var(--c-xxx);     border-top-color: var(--c-xxx); }
+.nav-btn.active-manga  { color: var(--c-manga);   border-top-color: var(--c-manga); }
+
+/* ── Botón de info + modal de detalle (hentai) ───────────────────────────── */
+.card-info-btn {
+  position: absolute;
+  top: 7px; left: 41px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #ccc;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 120ms, color 120ms;
+}
+.card-info-btn:hover { background: rgba(0,0,0,0.85); color: var(--c-hentai); }
+
+.detalle-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(4px);
+  z-index: 500; display: none; align-items: flex-start; justify-content: center;
+  padding: 40px 14px; overflow-y: auto;
+}
+.detalle-bg.show { display: flex; }
+.detalle-c {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  max-width: 720px; width: 100%; overflow: hidden;
+}
+.detalle-h {
+  display: flex; gap: 14px; padding: 16px; background: center/cover; position: relative;
+}
+.detalle-h::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(13,13,13,.55), var(--surface));
+}
+.detalle-h > * { position: relative; z-index: 1; }
+.detalle-poster {
+  width: 100px; height: 140px; border-radius: 8px; flex-shrink: 0;
+  background: var(--surface2) center/cover; border: 1px solid var(--border);
+}
+.detalle-info h2 { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.detalle-alt { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.detalle-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.detalle-chip {
+  font-size: 10.5px; background: var(--surface2); border: 1px solid var(--border);
+  padding: 2px 9px; border-radius: 20px; color: var(--text);
+}
+.detalle-chip.g { background: rgba(156,39,176,.15); border-color: rgba(156,39,176,.4); color: #ce93d8; }
+.detalle-b { padding: 16px; }
+.detalle-syn { font-size: 12.5px; color: #bbb; line-height: 1.5; margin-bottom: 14px; }
+.detalle-eps-head { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.detalle-eps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.detalle-ep {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 11px; font-size: 12px; cursor: pointer; transition: border-color 120ms;
+  display: flex; align-items: center; gap: 7px; color: var(--text);
+}
+.detalle-ep:hover { border-color: var(--c-hentai); }
+.detalle-close {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: rgba(0,0,0,.5); border: none; color: #fff;
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px;
+}
+.detalle-footer {
+  padding: 12px 16px 16px; border-top: 1px solid var(--border);
+}
+.detalle-play-btn {
+  width: 100%; background: var(--c-hentai); border: none; color: #fff;
+  font-size: 14px; font-weight: 600; padding: 11px; border-radius: 10px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.detalle-play-btn:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="search-wrap">
+    <i class="bi bi-search"></i>
+    <input type="text" id="searchInput" class="search-input" placeholder="Buscar…"
+           oninput="filterCards(this.value)">
+  </div>
+</div>
+
+<!-- Content area -->
+<div class="content-area">
+
+  <!-- SEGUIR VIENDO -->
+  <div id="seguir-viendo-wrap" style="display:none;">
+    <div class="resume-header"><i class="bi bi-clock-history"></i> Seguir viendo</div>
+    <div class="resume-row" id="resume-row"></div>
+  </div>
+
+  <!-- HENTAI -->
+  <div id="hentai-content" class="content-section active">
+    <ul class="nav nav-tabs mb-0" id="hentaiTabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#h-largos">Largos</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#h-cortos">Cortos</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#h-favoritos">Favoritos</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="h-largos">
+        <div id="hentai-largos-grid" class="media-grid"></div>
+        <div id="hentai-largos-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+      </div>
+      <div class="tab-pane fade" id="h-cortos">
+        <div id="hentai-cortos-grid" class="media-grid"></div>
+        <div id="hentai-cortos-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+      </div>
+      <div class="tab-pane fade" id="h-favoritos">
+        <div id="hentai-favoritos-grid" class="media-grid"></div>
+        <div id="hentai-favoritos-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANIMACIONES -->
+  <div id="animaciones-content" class="content-section">
+    <!-- Vista: artistas -->
+    <div id="anim-artistas-view">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Artistas</span>
+        <div style="display:flex;gap:8px;">
+          <button class="back-btn-sm" id="anim-subs-batch-btn" onclick="generarSubtitulosAnimTodo()">
+            <i class="bi bi-cc-circle"></i> Subtítulos a todas
+          </button>
+          <button class="back-btn-sm" id="anim-subs-reset-btn" onclick="reiniciarSubtitulosAnim('all')" title="Borra los subtítulos existentes y los vuelve a generar">
+            <i class="bi bi-arrow-repeat"></i> Reiniciar
+          </button>
+        </div>
+      </div>
+      <div id="anim-subs-batch-progress" style="display:none;font-size:11px;color:var(--muted);padding:0 2px 8px;"></div>
+      <div id="artistas-grid" class="media-grid"></div>
+      <div id="artistas-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+    </div>
+    <!-- Vista: animaciones de un artista -->
+    <div id="anim-list-view" style="display:none;">
+      <div class="back-row">
+        <button class="back-btn-sm" onclick="backToArtistas()">
+          <i class="bi bi-arrow-left"></i> Artistas
+        </button>
+        <span id="anim-artista-title" style="font-size:13px;font-weight:500;"></span>
+        <button class="back-btn-sm" id="anim-subs-reset-artista-btn" onclick="reiniciarSubtitulosAnimArtista()" style="margin-left:auto;" title="Borra los subtítulos existentes de este artista y los vuelve a generar">
+          <i class="bi bi-arrow-repeat"></i> Reiniciar subtítulos
+        </button>
+      </div>
+      <div id="anim-subs-reset-artista-progress" style="display:none;font-size:11px;color:var(--muted);padding:0 2px 8px;"></div>
+      <div id="animaciones-grid" class="media-grid"></div>
+      <div id="animaciones-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+    </div>
+  </div>
+
+  <!-- XXX -->
+  <div id="xxx-content" class="content-section">
+    <!-- Vista: categorías -->
+    <div id="xxx-cats-view">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <span>Categorías</span>
+        <div style="display:flex;gap:8px;">
+          <button class="back-btn-sm" id="xxx-subs-batch-all-btn" onclick="generarSubtitulosXXXTodo()">
+            <i class="bi bi-cc-circle"></i> Subtítulos a todo
+          </button>
+          <button class="back-btn-sm" id="xxx-subs-reset-all-btn" onclick="reiniciarSubtitulosXXX('all')" title="Borra los subtítulos existentes y los vuelve a generar">
+            <i class="bi bi-arrow-repeat"></i> Reiniciar
+          </button>
+          <button class="back-btn-sm" onclick="crearCarpetaXXX()">
+            <i class="bi bi-folder-plus"></i> Nueva carpeta
+          </button>
+        </div>
+      </div>
+      <div id="xxx-subs-batch-all-progress" style="display:none;font-size:11px;color:var(--muted);padding:0 2px 8px;"></div>
+      <div id="xxx-cats-grid" class="media-grid"></div>
+      <div id="xxx-cats-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+    </div>
+    <!-- Vista: videos de una categoría -->
+    <div id="xxx-videos-view" style="display:none;">
+      <div class="back-row">
+        <button class="back-btn-sm" onclick="backToXXXCats()">
+          <i class="bi bi-arrow-left"></i> Categorías
+        </button>
+        <span id="xxx-cat-title" style="font-size:13px;font-weight:500;color:var(--c-xxx);"></span>
+        <button class="back-btn-sm" id="xxx-subs-batch-btn" onclick="generarSubtitulosCategoria()" style="margin-left:auto;">
+          <i class="bi bi-cc-circle"></i> Subtítulos a todos
+        </button>
+        <button class="back-btn-sm" id="xxx-subs-reset-btn" onclick="reiniciarSubtitulosXXX('category')" title="Borra los subtítulos existentes de esta categoría y los vuelve a generar">
+          <i class="bi bi-arrow-repeat"></i> Reiniciar
+        </button>
+      </div>
+      <div id="xxx-subs-batch-progress" style="display:none;font-size:11px;color:var(--muted);padding:0 2px 8px;"></div>
+      <div id="xxx-videos-grid" class="media-grid"></div>
+      <div id="xxx-videos-state" class="state-placeholder"><div class="spinner-border spinner-border-sm text-secondary"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de detalle (ficha del hentai: portada, sinopsis, géneros, episodios) -->
+<div class="detalle-bg" id="detalleBg" onclick="if(event.target===this)cerrarDetalle()">
+  <div class="detalle-c">
+    <button class="detalle-close" onclick="cerrarDetalle()">✕</button>
+    <div class="detalle-h" id="detalleHead">
+      <div class="detalle-poster" id="detallePoster"></div>
+      <div class="detalle-info">
+        <h2 id="detalleTitulo"></h2>
+        <div class="detalle-alt" id="detalleAlt"></div>
+        <div class="detalle-chips" id="detalleChips"></div>
+      </div>
+    </div>
+    <div class="detalle-b">
+      <div class="detalle-syn" id="detalleSyn"></div>
+      <div class="detalle-eps-head">Episodios</div>
+      <div class="detalle-eps" id="detalleEps"></div>
+    </div>
+    <div class="detalle-footer" style="display:flex;gap:8px;">
+      <button class="detalle-play-btn" id="detallePlayBtn" onclick="reproducirDesdeFicha()">
+        <i class="bi bi-play-fill"></i> Reproducir
+      </button>
+      <button class="detalle-play-btn" id="detalleMoverBtn" style="display:none;flex:0 0 auto;background:var(--surface2);border:1px solid var(--border);" onclick="moverDesdeFicha()">
+        <i class="bi bi-folder-symlink"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active-hentai" id="nav-hentai" onclick="showSection('hentai')">
+    <i class="bi bi-collection-play"></i><span>Hentai</span>
+  </button>
+  <button class="nav-btn" id="nav-animaciones" onclick="showSection('animaciones')">
+    <i class="bi bi-film"></i><span>Animaciones</span>
+  </button>
+  <button class="nav-btn" id="nav-xxx" onclick="showSection('xxx')">
+    <i class="bi bi-play-circle"></i><span>XXX</span>
+  </button>
+  <button class="nav-btn" id="nav-manga" onclick="location.href='/manga'">
+    <i class="bi bi-book"></i><span>Mangas</span>
+  </button>
+  <button class="nav-btn" id="nav-inicio" onclick="location.href='/inicio'">
+    <i class="bi bi-house-door"></i><span>Inicio</span>
+  </button>
+</div>
+
+<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/colecciones.js"></script>
+<script>
+// ── Estado ────────────────────────────────────────────────────────────────────
+let currentSection    = 'hentai';
+let currentArtista    = '';
+let currentXXXCat     = '';
+const loadedSections  = new Set();   // evita recargas innecesarias
+
+// ── Historial (para que "atrás" del navegador navegue por sección/subvista en
+// vez de saltar siempre al estado inicial) ─────────────────────────────────────
+// Cada entrada de historial guarda {section, sub, key} — sub/key describen la
+// subvista dentro de animaciones (artista) o xxx (categoría). Se navega con
+// pushState (sin recargar la página) y popstate restaura sin volver a pushear.
+let _restoringFromHistory = false;
+
+function _pushViewState(section, sub, key) {
+  if (_restoringFromHistory) return;
+  history.pushState({ section, sub, key }, '', location.pathname + location.search);
+}
+
+window.addEventListener('popstate', ev => {
+  const st = ev.state || { section: 'hentai' };
+  _restoringFromHistory = true;
+  try {
+    showSection(st.section, { skipHistory: true });
+    if (st.section === 'animaciones' && st.sub === 'lista' && st.key) {
+      loadAnimacionesArtista(st.key, { skipHistory: true });
+    } else if (st.section === 'animaciones') {
+      backToArtistas({ skipHistory: true });
+    } else if (st.section === 'xxx' && st.sub === 'videos' && st.key) {
+      loadXXXVideos(st.key, { skipHistory: true });
+    } else if (st.section === 'xxx') {
+      backToXXXCats({ skipHistory: true });
+    }
+  } finally {
+    _restoringFromHistory = false;
+  }
+});
+
+// Entrada directa desde el reproductor de video (volverAGaleria()): un hash
+// #animacion:<artista> o #xxx:<categoria> salta directo a esa subvista en vez
+// de mostrar siempre Hentai > Largos por defecto.
+function _abrirDesdeHash() {
+  const hash = decodeURIComponent(location.hash.slice(1));
+  const [tipo, key] = hash.split(/:(.+)/); // separa solo en el primer ":"
+  if (tipo === 'animacion' && key) {
+    showSection('animaciones');
+    loadAnimacionesArtista(key);
+    return true;
+  }
+  if (tipo === 'xxx' && key) {
+    showSection('xxx');
+    loadXXXVideos(key);
+    return true;
+  }
+  return false;
+}
+
+// Entrada desde /inicio con ?seccion=hentai|animaciones|xxx (los tres tipos
+// comparten esta misma página) — sin esto siempre arrancaba en Hentai.
+function _abrirDesdeSeccionParam() {
+  const seccion = new URLSearchParams(location.search).get('seccion');
+  if (seccion && ['hentai', 'animaciones', 'xxx'].includes(seccion)) {
+    showSection(seccion);
+    return true;
+  }
+  return false;
+}
+
+// ── Inicio ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadHentai('largos');
+  loadSeguirViendo();
+  if (_abrirDesdeHash() || _abrirDesdeSeccionParam()) {
+    history.replaceState({ section: currentSection }, '', location.pathname + location.search);
+  } else {
+    history.replaceState({ section: 'hentai' }, '', location.pathname + location.search);
+  }
+
+  document.querySelectorAll('#hentaiTabs a[data-bs-toggle="tab"]').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', ev => {
+      const section = ev.target.getAttribute('href').replace('#h-', '');
+      loadHentai(section);
+    });
+  });
+
+  // Tras agregar ítems seleccionados a una carpeta, recargar la grilla
+  // afectada para que la insignia "en carpeta" aparezca sin refrescar la página.
+  if (window.Colecciones) {
+    Colecciones.onAplicado(tipo => {
+      if (tipo === 'hentai') {
+        ['largos', 'cortos', 'favoritos'].forEach(s => { loadedSections.delete(`hentai-${s}`); loadHentai(s); });
+      } else if (tipo === 'animacion' && currentArtista) {
+        loadAnimacionesArtista(currentArtista);
+      } else if (tipo === 'xxx' && currentXXXCat) {
+        loadXXXVideos(currentXXXCat);
+      }
+    });
+  }
+});
+
+// ── Seguir viendo ─────────────────────────────────────────────────────────────
+function _fmtTime(sec) {
+  sec = Math.floor(sec || 0);
+  const m = Math.floor(sec / 60), s = sec % 60;
+  const h = Math.floor(m / 60);
+  return h > 0 ? `${h}:${String(m % 60).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+               : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+async function loadSeguirViendo() {
+  const wrap = document.getElementById('seguir-viendo-wrap');
+  const row  = document.getElementById('resume-row');
+  try {
+    const res = await fetch('/api/media/recientes?limit=12');
+    const { recientes = [] } = await res.json();
+    if (!recientes.length) { wrap.style.display = 'none'; return; }
+
+    row.innerHTML = '';
+    recientes.forEach(r => {
+      const tipoCls  = { hentai: 't-hentai', animacion: 't-anim', xxx: 't-xxx' }[r.tipo] || '';
+      const tipoBg   = { hentai: 'var(--c-hentai)', animacion: 'var(--c-anim)', xxx: 'var(--c-xxx)' }[r.tipo] || '#555';
+      const tipoTxt  = { hentai: 'Hentai', animacion: 'Anim', xxx: 'XXX' }[r.tipo] || r.tipo;
+      const nombre   = r.tipo === 'xxx' ? r.category : (r.tipo === 'animacion' ? `${r.artista} — ${r.id}` : r.id);
+      const pct      = r.duration > 0 ? Math.min(100, Math.round(r.position / r.duration * 100)) : 0;
+      const terminado = r.duration > 0 && r.position / r.duration >= 0.9;
+
+      const card = document.createElement('div');
+      card.className = `resume-card ${tipoCls}`;
+      card.title = nombre;
+      card.innerHTML = `
+        <div class="resume-cover">
+          ${r.preview
+            ? `<img src="${r.preview}" loading="lazy" alt="" onerror="this.remove()">`
+            : '<div class="resume-cover-placeholder"><i class="bi bi-play-circle"></i></div>'}
+          <span class="resume-type-badge" style="background:${tipoBg};">${tipoTxt}</span>
+          ${pct > 0 && !terminado ? `<div class="resume-bar"><div class="resume-fill" style="width:${pct}%"></div></div>` : ''}
+        </div>
+        <div class="resume-name">${nombre}</div>
+        <div class="resume-sub">${terminado ? '✓ Visto' : (r.duration ? `${_fmtTime(r.position)} / ${_fmtTime(r.duration)}` : '')}</div>
+      `;
+      card.addEventListener('click', () => {
+        let url = '';
+        if (r.tipo === 'hentai') {
+          url = `/reproductor-universal.html?mode=hentai&id=${encodeURIComponent(r.id)}`;
+        } else if (r.tipo === 'animacion') {
+          url = `/reproductor-universal.html?mode=animacion&artista=${encodeURIComponent(r.artista)}&id=${encodeURIComponent(r.id)}`;
+        } else {
+          url = `/reproductor-universal.html?mode=xxx&category=${encodeURIComponent(r.category)}&video=${encodeURIComponent(r.last_video)}`;
+        }
+        location.href = url;
+      });
+      row.appendChild(card);
+    });
+    wrap.style.display = '';
+  } catch {
+    wrap.style.display = 'none';
+  }
+}
+
+// ── Favorito rápido en cards de hentai ────────────────────────────────────────
+async function toggleHentaiFav(ev, nombre, seccion) {
+  ev.stopPropagation();
+  const btn = ev.currentTarget;
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/toggle_favorite', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'hentai', name: nombre, is_favorite: seccion === 'favoritos' }),
+    });
+    const d = await res.json();
+    if (d.success) {
+      // El hentai cambió de carpeta → recargar las tres pestañas
+      ['largos', 'cortos', 'favoritos'].forEach(s => loadedSections.delete(`hentai-${s}`));
+      loadHentai('largos'); loadHentai('cortos'); loadHentai('favoritos');
+    } else {
+      alert(d.error || 'No se pudo cambiar el favorito');
+      btn.disabled = false;
+    }
+  } catch {
+    alert('Error de conexión');
+    btn.disabled = false;
+  }
+}
+
+// ── Ficha de detalle (hentai): portada, sinopsis, géneros, episodios ──────────
+function _escDet(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s ?? '');
+  return d.innerHTML;
+}
+
+let _detalleCtx = null; // { modo: 'hentai'|'xxx', nombre, categoria?, primerVideo }
+
+async function abrirDetalle(nombre) {
+  const bg = document.getElementById('detalleBg');
+  bg.classList.add('show');
+  document.getElementById('detalleTitulo').textContent = 'Cargando…';
+  document.getElementById('detalleAlt').textContent = '';
+  document.getElementById('detalleChips').innerHTML = '';
+  document.getElementById('detalleSyn').textContent = '';
+  document.getElementById('detalleEps').innerHTML = '<div class="spinner-border spinner-border-sm text-secondary"></div>';
+  document.getElementById('detallePoster').style.backgroundImage = '';
+  document.getElementById('detalleHead').style.backgroundImage = '';
+  document.getElementById('detallePlayBtn').disabled = false;
+  document.getElementById('detalleMoverBtn').style.display = 'none';
+  _detalleCtx = { modo: 'hentai', nombre, primerVideo: null };
+
+  try {
+    const res = await fetch(`/api/hentai/detalle/${encodeURIComponent(nombre)}`);
+    const d = await res.json();
+
+    document.getElementById('detalleTitulo').textContent = nombre;
+    document.getElementById('detalleAlt').textContent = d.title_alt || '';
+
+    if (d.poster) {
+      document.getElementById('detallePoster').style.backgroundImage = `url('${d.poster}')`;
+      document.getElementById('detalleHead').style.backgroundImage =
+        `linear-gradient(180deg, rgba(13,13,13,.55), var(--surface)), url('${d.poster}')`;
+    }
+
+    const chips = [];
+    if (d.type) chips.push(`<span class="detalle-chip">${_escDet(d.type)}</span>`);
+    if (d.year) chips.push(`<span class="detalle-chip">${_escDet(d.year)}</span>`);
+    (d.genres || []).forEach(g => chips.push(`<span class="detalle-chip g">${_escDet(g)}</span>`));
+    document.getElementById('detalleChips').innerHTML = chips.join('');
+
+    document.getElementById('detalleSyn').textContent = d.synopsis || 'Sin sinopsis.';
+
+    const videos = d.videos || [];
+    _detalleCtx.primerVideo = videos[0] || null;
+    document.getElementById('detallePlayBtn').disabled = !videos.length;
+    document.getElementById('detalleEps').innerHTML = videos.length
+      ? videos.map((v, i) => `
+          <div class="detalle-ep" onclick="location.href='/reproductor-universal.html?mode=hentai&id=${encodeURIComponent(nombre)}&video=${encodeURIComponent(v)}'">
+            <i class="bi bi-play-circle"></i> Ep ${i + 1}
+          </div>`).join('')
+      : '<span style="color:var(--muted);font-size:12px;">Sin videos.</span>';
+  } catch {
+    document.getElementById('detalleTitulo').textContent = nombre;
+    document.getElementById('detalleSyn').textContent = 'Error al cargar la ficha.';
+    document.getElementById('detalleEps').innerHTML = '';
+    document.getElementById('detallePlayBtn').disabled = true;
+  }
+}
+
+// Ficha simplificada para XXX: sin sinopsis/géneros (no hay metadata), solo
+// preview grande + botón reproducir — mismo modal que hentai, reusado.
+function abrirDetalleXXX(item) {
+  const bg = document.getElementById('detalleBg');
+  bg.classList.add('show');
+  document.getElementById('detalleTitulo').textContent = item.nombre;
+  document.getElementById('detalleAlt').textContent = '';
+  document.getElementById('detalleChips').innerHTML = '';
+  document.getElementById('detalleSyn').textContent = '';
+  document.getElementById('detalleEps').innerHTML = '';
+  document.getElementById('detallePlayBtn').disabled = false;
+  document.getElementById('detalleMoverBtn').style.display = 'flex';
+  if (item.preview) {
+    document.getElementById('detallePoster').style.backgroundImage = `url('${item.preview}')`;
+    document.getElementById('detalleHead').style.backgroundImage =
+      `linear-gradient(180deg, rgba(13,13,13,.55), var(--surface)), url('${item.preview}')`;
+  } else {
+    document.getElementById('detallePoster').style.backgroundImage = '';
+    document.getElementById('detalleHead').style.backgroundImage = '';
+  }
+  _detalleCtx = { modo: 'xxx', nombre: item.nombre, categoria: currentXXXCat, primerVideo: item.nombre };
+}
+
+function reproducirDesdeFicha() {
+  if (!_detalleCtx) return;
+  if (_detalleCtx.modo === 'hentai') {
+    if (!_detalleCtx.primerVideo) return;
+    location.href = `/reproductor-universal.html?mode=hentai&id=${encodeURIComponent(_detalleCtx.nombre)}&video=${encodeURIComponent(_detalleCtx.primerVideo)}`;
+  } else if (_detalleCtx.modo === 'xxx') {
+    location.href = `/reproductor-universal.html?mode=xxx&category=${encodeURIComponent(_detalleCtx.categoria)}&video=${encodeURIComponent(_detalleCtx.nombre)}`;
+  }
+}
+
+async function moverDesdeFicha() {
+  if (!_detalleCtx || _detalleCtx.modo !== 'xxx') return;
+  await moverVideoXXX({ nombre: _detalleCtx.nombre });
+  cerrarDetalle();
+}
+
+function cerrarDetalle() {
+  document.getElementById('detalleBg').classList.remove('show');
+}
+
+// ── Secciones ─────────────────────────────────────────────────────────────────
+function showSection(name, opts = {}) {
+  currentSection = name;
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`${name}-content`).classList.add('active');
+
+  // Actualizar nav
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.className = 'nav-btn';
+  });
+  const navMap = { hentai: 'active-hentai', animaciones: 'active-anim', xxx: 'active-xxx', manga: 'active-manga' };
+  document.getElementById(`nav-${name}`)?.classList.add(navMap[name]);
+
+  // Cargar datos si es necesario
+  if (name === 'animaciones' && !loadedSections.has('artistas')) loadArtistas();
+  if (name === 'xxx'         && !loadedSections.has('xxx-cats'))  loadXXXCats();
+
+  if (!opts.skipHistory) _pushViewState(name, null, null);
+}
+
+// ── Hentai ────────────────────────────────────────────────────────────────────
+async function loadHentai(section) {
+  if (loadedSections.has(`hentai-${section}`)) return;
+  const grid  = document.getElementById(`hentai-${section}-grid`);
+  const state = document.getElementById(`hentai-${section}-state`);
+  grid.innerHTML = '';
+  state.style.display = 'block';
+  try {
+    if (window.Colecciones) await Colecciones.fetch('hentai').catch(() => {});
+    const res = await fetch(`/api/hentai/${section}`);
+    const { hentai = [] } = await res.json();
+    if (hentai.length) {
+      hentai.forEach(item => grid.appendChild(createCard(item, 'hentai')));
+      loadedSections.add(`hentai-${section}`);
+    } else {
+      state.innerHTML = `<i class="bi bi-collection"></i>Sin hentai ${section}`;
+      return;
+    }
+  } catch {
+    state.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Error al cargar';
+    return;
+  }
+  state.style.display = 'none';
+}
+
+// ── Animaciones ───────────────────────────────────────────────────────────────
+async function loadArtistas() {
+  const grid  = document.getElementById('artistas-grid');
+  const state = document.getElementById('artistas-state');
+  grid.innerHTML = '';
+  state.style.display = 'block';
+  try {
+    const res = await fetch('/api/animaciones/artistas');
+    const { artistas = [] } = await res.json();
+    if (artistas.length) {
+      artistas.forEach(a => grid.appendChild(createCard(a, 'artista')));
+      loadedSections.add('artistas');
+    } else {
+      state.innerHTML = '<i class="bi bi-person"></i>Sin artistas';
+      return;
+    }
+  } catch {
+    state.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Error al cargar';
+    return;
+  }
+  state.style.display = 'none';
+}
+
+async function loadAnimacionesArtista(artista, opts = {}) {
+  currentArtista = artista;
+  document.getElementById('anim-artistas-view').style.display = 'none';
+  document.getElementById('anim-list-view').style.display = 'block';
+  document.getElementById('anim-artista-title').textContent = artista;
+  if (!opts.skipHistory) _pushViewState('animaciones', 'lista', artista);
+
+  const grid  = document.getElementById('animaciones-grid');
+  const state = document.getElementById('animaciones-state');
+  grid.innerHTML = '';
+  state.style.display = 'block';
+  try {
+    if (window.Colecciones) await Colecciones.fetch('animacion').catch(() => {});
+    const res = await fetch(`/api/animaciones/${encodeURIComponent(artista)}`);
+    const { animaciones = [] } = await res.json();
+    if (animaciones.length) {
+      animaciones.forEach(a => grid.appendChild(createCard(a, 'animacion')));
+    } else {
+      state.innerHTML = '<i class="bi bi-film"></i>Sin animaciones';
+      return;
+    }
+  } catch {
+    state.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Error al cargar';
+    return;
+  }
+  state.style.display = 'none';
+}
+
+function backToArtistas(opts = {}) {
+  document.getElementById('anim-artistas-view').style.display = 'block';
+  document.getElementById('anim-list-view').style.display = 'none';
+  if (!opts.skipHistory) _pushViewState('animaciones', null, null);
+}
+
+// ── XXX ───────────────────────────────────────────────────────────────────────
+async function loadXXXCats() {
+  const grid  = document.getElementById('xxx-cats-grid');
+  const state = document.getElementById('xxx-cats-state');
+  grid.innerHTML = '';
+  state.style.display = 'block';
+  try {
+    const res = await fetch('/api/xxx/categories');
+    const { categories = [] } = await res.json();
+    if (categories.length) {
+      categories.forEach(c => {
+        const card = createCard({ nombre: c.nombre, preview: c.preview }, 'xxx-cat');
+        if (c.videos_count) {
+          const badge = document.createElement('div');
+          badge.className = 'card-badge';
+          badge.textContent = c.videos_count;
+          card.appendChild(badge);
+        }
+        grid.appendChild(card);
+      });
+      loadedSections.add('xxx-cats');
+    } else {
+      state.innerHTML = '<i class="bi bi-collection-play"></i>Sin categorías';
+      return;
+    }
+  } catch {
+    state.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Error al cargar';
+    return;
+  }
+  state.style.display = 'none';
+}
+
+async function loadXXXVideos(cat, opts = {}) {
+  currentXXXCat = cat;
+  document.getElementById('xxx-cats-view').style.display = 'none';
+  document.getElementById('xxx-videos-view').style.display = 'block';
+  document.getElementById('xxx-cat-title').textContent = cat;
+  if (!opts.skipHistory) _pushViewState('xxx', 'videos', cat);
+
+  const grid  = document.getElementById('xxx-videos-grid');
+  const state = document.getElementById('xxx-videos-state');
+  grid.innerHTML = '';
+  state.style.display = 'block';
+  try {
+    if (window.Colecciones) await Colecciones.fetch('xxx').catch(() => {});
+    const res = await fetch(`/api/xxx/${encodeURIComponent(cat)}`);
+    const { videos = [] } = await res.json();
+    if (videos.length) {
+      videos.forEach(v => grid.appendChild(createCard({ nombre: v.nombre, preview: v.preview }, 'xxx-video', v)));
+    } else {
+      state.innerHTML = '<i class="bi bi-play-circle"></i>Sin videos';
+      return;
+    }
+  } catch {
+    state.innerHTML = '<i class="bi bi-exclamation-triangle"></i>Error al cargar';
+    return;
+  }
+  state.style.display = 'none';
+
+  try {
+    const st = await (await fetch('/api/xxx/subtitles_batch_status')).json();
+    if (st.status === 'running') {
+      document.getElementById('xxx-subs-batch-btn').disabled = true;
+      _pollSubsBatch('/api/xxx/subtitles_batch_status', 'xxx-subs-batch-btn', 'xxx-subs-batch-progress');
+    }
+  } catch {}
+}
+
+function backToXXXCats(opts = {}) {
+  document.getElementById('xxx-cats-view').style.display = 'block';
+  document.getElementById('xxx-videos-view').style.display = 'none';
+  clearInterval(_subsBatchPoll);
+  _xxxClearSelection();
+  if (!opts.skipHistory) _pushViewState('xxx', null, null);
+}
+
+let _subsBatchPoll = null;
+
+async function generarSubtitulosCategoria() {
+  if (!currentXXXCat) return;
+  await _iniciarSubsBatch(
+    `/api/xxx/subtitles_batch/${encodeURIComponent(currentXXXCat)}`,
+    '/api/xxx/subtitles_batch_status',
+    'xxx-subs-batch-btn', 'xxx-subs-batch-progress'
+  );
+}
+
+async function generarSubtitulosXXXTodo() {
+  await _iniciarSubsBatch(
+    '/api/xxx/subtitles_batch_all', '/api/xxx/subtitles_batch_status',
+    'xxx-subs-batch-all-btn', 'xxx-subs-batch-all-progress'
+  );
+}
+
+async function generarSubtitulosAnimTodo() {
+  await _iniciarSubsBatch(
+    '/api/animacion/subtitles_batch_all', '/api/animacion/subtitles_batch_status',
+    'anim-subs-batch-btn', 'anim-subs-batch-progress'
+  );
+}
+
+// Reinicio: borra los .vtt existentes (endpoint /subtitles_reset) y relanza
+// el batch correspondiente para que se regeneren desde cero.
+async function _reiniciarSubs(resetUrl, resetBody, btnId, boxId, startUrl, statusUrl, startBtnId) {
+  if (!confirm('¿Borrar los subtítulos existentes y volver a generarlos? Esto no se puede deshacer.')) return;
+  const btn = document.getElementById(btnId);
+  const box = document.getElementById(boxId);
+  btn.disabled = true;
+  try {
+    const res = await fetch(resetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resetBody),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert('Error: ' + (data.error || 'no se pudo reiniciar'));
+      btn.disabled = false;
+      return;
+    }
+    box.style.display = 'block';
+    box.textContent = `${data.borrados} subtítulo(s) borrado(s), regenerando…`;
+    await _iniciarSubsBatch(startUrl, statusUrl, startBtnId, boxId);
+  } catch {
+    alert('Error de red al reiniciar los subtítulos');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function reiniciarSubtitulosAnim(scope) {
+  await _reiniciarSubs(
+    '/api/animacion/subtitles_reset', { scope },
+    'anim-subs-reset-btn', 'anim-subs-batch-progress',
+    '/api/animacion/subtitles_batch_all', '/api/animacion/subtitles_batch_status', 'anim-subs-batch-btn'
+  );
+}
+
+async function reiniciarSubtitulosAnimArtista() {
+  if (!currentArtista) return;
+  await _reiniciarSubs(
+    '/api/animacion/subtitles_reset', { scope: 'artista', artista: currentArtista },
+    'anim-subs-reset-artista-btn', 'anim-subs-reset-artista-progress',
+    '/api/animacion/subtitles_batch_all', '/api/animacion/subtitles_batch_status', 'anim-subs-reset-artista-btn'
+  );
+}
+
+async function reiniciarSubtitulosXXX(scope) {
+  if (scope === 'category') {
+    if (!currentXXXCat) return;
+    await _reiniciarSubs(
+      '/api/xxx/subtitles_reset', { scope: 'category', category: currentXXXCat },
+      'xxx-subs-reset-btn', 'xxx-subs-batch-progress',
+      `/api/xxx/subtitles_batch/${encodeURIComponent(currentXXXCat)}`, '/api/xxx/subtitles_batch_status', 'xxx-subs-batch-btn'
+    );
+  } else {
+    await _reiniciarSubs(
+      '/api/xxx/subtitles_reset', { scope: 'all' },
+      'xxx-subs-reset-all-btn', 'xxx-subs-batch-all-progress',
+      '/api/xxx/subtitles_batch_all', '/api/xxx/subtitles_batch_status', 'xxx-subs-batch-all-btn'
+    );
+  }
+}
+
+// Genérico: dispara un batch de subtítulos y hace polling de su progreso.
+// Solo una cola corre a la vez en el server (una sola GPU) — si otra ya está
+// corriendo, el status igual se refleja acá (mensaje "ya corriendo" incluido).
+async function _iniciarSubsBatch(startUrl, statusUrl, btnId, boxId) {
+  const btn = document.getElementById(btnId);
+  const box = document.getElementById(boxId);
+  btn.disabled = true;
+  try {
+    const res = await fetch(startUrl, { method: 'POST' });
+    const data = await res.json();
+    if (data.status === 'nothing_to_do') {
+      box.style.display = 'block';
+      box.textContent = 'Todos los videos ya tienen subtítulos.';
+      btn.disabled = false;
+      setTimeout(() => { box.style.display = 'none'; }, 3000);
+      return;
+    }
+    box.style.display = 'block';
+    _pollSubsBatch(statusUrl, btnId, boxId);
+  } catch {
+    btn.disabled = false;
+    alert('Error de red al iniciar la generación de subtítulos');
+  }
+}
+
+function _pollSubsBatch(statusUrl, btnId, boxId) {
+  const btn = document.getElementById(btnId);
+  const box = document.getElementById(boxId);
+  clearInterval(_subsBatchPoll);
+  _subsBatchPoll = setInterval(async () => {
+    try {
+      const res = await fetch(statusUrl);
+      const data = await res.json();
+      if (data.status === 'idle') {
+        clearInterval(_subsBatchPoll);
+        box.style.display = 'none';
+        btn.disabled = false;
+        return;
+      }
+      btn.disabled = true;
+      box.style.display = 'block';
+      const etiqueta = data.status === 'already_running' ? 'Ya hay una cola corriendo' : 'Generando subtítulos';
+      box.textContent = `${etiqueta}… ${data.done}/${data.total}` +
+        (data.current ? ` — ${data.current}` : '');
+    } catch {
+      clearInterval(_subsBatchPoll);
+      btn.disabled = false;
+    }
+  }, 4000);
+}
+
+async function crearCarpetaXXX() {
+  const nombre = prompt('Nombre de la nueva carpeta:');
+  if (!nombre || !nombre.trim()) return;
+  try {
+    const res = await fetch('/api/xxx/create_category', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: nombre.trim() }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      alert(data.error || 'No se pudo crear la carpeta');
+      return;
+    }
+    loadedSections.delete('xxx-cats');
+    loadXXXCats();
+  } catch {
+    alert('Error de red al crear la carpeta');
+  }
+}
+
+// Picker visual de carpetas FÍSICAS de XXX (distinto del picker de
+// Colecciones — este mueve el archivo de verdad en disco). Sirve tanto para
+// un solo video (desde la ficha) como para varios (desde selección múltiple).
+let _xxxMovePickerEl = null;
+function _ensureXXXMovePicker() {
+  if (_xxxMovePickerEl) return _xxxMovePickerEl;
+  const el = document.createElement('div');
+  el.id = 'xxxMovePicker';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2100;' +
+    'display:none;align-items:center;justify-content:center;';
+  el.innerHTML = `
+    <div style="background:#1c1c22;border-radius:10px;padding:16px;width:min(320px,90vw);color:#eee;font-size:13px;">
+      <div style="font-weight:600;margin-bottom:10px;">Mover a carpeta</div>
+      <div id="xxxMovePickerList" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+      <button id="xxxMovePickerCerrar" style="margin-top:10px;width:100%;background:#333;border:none;border-radius:6px;color:#eee;padding:6px;font-size:12px;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+  el.querySelector('#xxxMovePickerCerrar').addEventListener('click', () => { el.style.display = 'none'; });
+  _xxxMovePickerEl = el;
+  return el;
+}
+
+function _escXXX(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s ?? '');
+  return d.innerHTML;
+}
+
+async function moverVideoXXX(itemOrNombres) {
+  const nombres = Array.isArray(itemOrNombres) ? itemOrNombres : [itemOrNombres.nombre];
+  if (!nombres.length) return;
+
+  const el = _ensureXXXMovePicker();
+  el.style.display = 'flex';
+  const list = el.querySelector('#xxxMovePickerList');
+  list.innerHTML = '<div style="opacity:.6;">Cargando…</div>';
+
+  let opciones = [];
+  try {
+    const res = await fetch('/api/xxx/categories');
+    const { categories = [] } = await res.json();
+    opciones = categories.map(c => c.nombre).filter(n => n !== currentXXXCat);
+  } catch {
+    list.innerHTML = '<div style="opacity:.6;">Error al cargar carpetas.</div>';
+    return;
+  }
+
+  if (!opciones.length) {
+    list.innerHTML = '<div style="opacity:.6;">No hay otras carpetas — creá una primero con "Nueva carpeta".</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  opciones.forEach(nombreDestino => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;' +
+      'background:#26262e;border-radius:6px;cursor:pointer;';
+    row.innerHTML = `<i class="bi bi-folder-fill"></i><span>${_escXXX(nombreDestino)}</span>`;
+    row.addEventListener('click', async () => {
+      el.style.display = 'none';
+      let ok = 0, fail = 0;
+      for (const nombre of nombres) {
+        try {
+          const moveRes = await fetch('/api/xxx/move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, categoria_origen: currentXXXCat, categoria_destino: nombreDestino }),
+          });
+          const moveData = await moveRes.json();
+          if (moveRes.ok && moveData.success) ok++; else fail++;
+        } catch { fail++; }
+      }
+      if (fail) alert(`Movidos: ${ok}. Fallaron: ${fail}.`);
+      _xxxClearSelection();
+      loadXXXVideos(currentXXXCat);
+    });
+    list.appendChild(row);
+  });
+}
+
+// ── Selección múltiple de videos XXX (long-press) — carpetas físicas ────────
+// Separado de window.Colecciones (que es virtual): acá "seleccionar y mover"
+// mueve archivos de verdad en disco, por eso necesita su propio estado/toolbar.
+const _xxxSelState = { nombres: new Set() };
+let _xxxSelToolbarEl = null;
+
+function _xxxEnsureToolbar() {
+  if (_xxxSelToolbarEl) return _xxxSelToolbarEl;
+  const el = document.createElement('div');
+  el.id = 'xxxSelToolbar';
+  el.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);' +
+    'background:#1c1c22;border:1px solid rgba(255,255,255,.12);border-radius:12px;' +
+    'padding:8px 14px;display:none;align-items:center;gap:12px;z-index:1500;' +
+    'box-shadow:0 6px 24px rgba(0,0,0,.4);color:#eee;font-size:13px;';
+  el.innerHTML = `
+    <span id="xxxSelToolbarCount">0 seleccionados</span>
+    <button id="xxxSelToolbarMover" style="background:#3a8a5c;border:none;border-radius:6px;color:#fff;padding:6px 10px;font-size:12px;">
+      <i class="bi bi-folder-symlink"></i> Mover
+    </button>
+    <button id="xxxSelToolbarCancelar" style="background:#333;border:none;border-radius:6px;color:#eee;padding:6px 10px;font-size:12px;">Cancelar</button>`;
+  document.body.appendChild(el);
+  el.querySelector('#xxxSelToolbarCancelar').addEventListener('click', _xxxClearSelection);
+  el.querySelector('#xxxSelToolbarMover').addEventListener('click', () => {
+    const nombres = [..._xxxSelState.nombres];
+    if (nombres.length) moverVideoXXX(nombres);
+  });
+  _xxxSelToolbarEl = el;
+  return el;
+}
+
+function _xxxUpdateToolbar() {
+  const el = _xxxEnsureToolbar();
+  if (_xxxSelState.nombres.size > 0) {
+    el.style.display = 'flex';
+    el.querySelector('#xxxSelToolbarCount').textContent = `${_xxxSelState.nombres.size} seleccionado(s)`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function _xxxIsSelecting() { return _xxxSelState.nombres.size > 0; }
+
+function _xxxClearSelection() {
+  document.querySelectorAll('.xxx-sel-active').forEach(c => c.classList.remove('xxx-sel-active'));
+  _xxxSelState.nombres.clear();
+  _xxxUpdateToolbar();
+}
+
+function _xxxToggleSelect(card, nombre) {
+  if (_xxxSelState.nombres.has(nombre)) {
+    _xxxSelState.nombres.delete(nombre);
+    card.classList.remove('xxx-sel-active');
+  } else {
+    _xxxSelState.nombres.add(nombre);
+    card.classList.add('xxx-sel-active');
+  }
+  _xxxUpdateToolbar();
+}
+
+if (!document.getElementById('xxxSelCardStyle')) {
+  const style = document.createElement('style');
+  style.id = 'xxxSelCardStyle';
+  style.textContent = '.xxx-sel-active{outline:3px solid #3a8a5c;outline-offset:-3px;}';
+  document.head.appendChild(style);
+}
+
+// Mismo umbral de movimiento que colecciones.js — el dedo hace drift natural
+// durante un long-press, cancelarlo con cualquier touchmove lo rompe en móvil.
+function attachXXXMoveSelectable(card, nombre, onOpen) {
+  _xxxEnsureToolbar();
+  let timer = null;
+  let longPressed = false;
+  let startX = 0, startY = 0;
+  const MOVE_TOLERANCE = 10;
+
+  const start = (x, y) => {
+    longPressed = false;
+    startX = x; startY = y;
+    timer = setTimeout(() => { longPressed = true; timer = null; _xxxToggleSelect(card, nombre); }, 480);
+  };
+  const cancelTimer = () => { if (timer) clearTimeout(timer); timer = null; };
+  const moveCancels = (x, y) => {
+    if (Math.abs(x - startX) > MOVE_TOLERANCE || Math.abs(y - startY) > MOVE_TOLERANCE) cancelTimer();
+  };
+
+  card.addEventListener('mousedown', e => start(e.clientX, e.clientY));
+  card.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    start(t.clientX, t.clientY);
+  }, { passive: true });
+  card.addEventListener('mousemove', e => moveCancels(e.clientX, e.clientY));
+  card.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    moveCancels(t.clientX, t.clientY);
+  }, { passive: true });
+  ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(evt => card.addEventListener(evt, cancelTimer));
+
+  card.addEventListener('contextmenu', e => { e.preventDefault(); _xxxToggleSelect(card, nombre); });
+
+  card.addEventListener('click', e => {
+    if (longPressed) { longPressed = false; return; }
+    if (_xxxIsSelecting()) { e.preventDefault(); e.stopPropagation(); _xxxToggleSelect(card, nombre); return; }
+    onOpen(e);
+  });
+}
+
+// ── Crear tarjeta ─────────────────────────────────────────────────────────────
+// typeMap: 'hentai' | 'artista' | 'animacion' | 'xxx-cat' | 'xxx-video'
+function createCard(item, type, rawData = null) {
+  const card = document.createElement('div');
+
+  const colorClass = {
+    hentai:    't-hentai',
+    artista:   't-anim',
+    animacion: 't-anim',
+    'xxx-cat': 't-xxx',
+    'xxx-video': 't-xxx',
+  }[type] || '';
+  card.className = `media-card ${colorClass}`;
+
+  const img = document.createElement('img');
+  img.className = 'card-img';
+  img.loading = 'lazy';          // ← lazy loading nativo
+  img.decoding = 'async';
+  img.alt = item.nombre;
+  img.src = item.preview || '';
+  img.onerror = () => { img.src = ''; img.style.background = '#1a1a1a'; };
+
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = item.nombre;
+  overlay.appendChild(title);
+
+  card.appendChild(img);
+  card.appendChild(overlay);
+
+  // Estrella de favorito rápido (solo hentai; item.tipo = sección actual)
+  if (type === 'hentai') {
+    const fav = document.createElement('button');
+    const esFav = item.tipo === 'favoritos';
+    fav.className = 'card-fav-btn' + (esFav ? ' is-fav' : '');
+    fav.innerHTML = `<i class="bi ${esFav ? 'bi-star-fill' : 'bi-star'}"></i>`;
+    fav.title = esFav ? 'Quitar de favoritos' : 'Añadir a favoritos';
+    fav.addEventListener('click', ev => toggleHentaiFav(ev, item.nombre, item.tipo));
+    card.appendChild(fav);
+  }
+
+  // Acción al hacer click: hentai y xxx-video abren la ficha (modal con
+  // botón "Reproducir"), como en mangas — no navegan directo al reproductor.
+  // Se salta si hay una selección de carpetas en curso (attachSelectable la intercepta).
+  const abrir = () => {
+    switch (type) {
+      case 'hentai':
+        abrirDetalle(item.nombre);
+        break;
+      case 'artista':
+        loadAnimacionesArtista(item.nombre);
+        break;
+      case 'animacion':
+        location.href = `/reproductor-universal.html?mode=animacion&artista=${encodeURIComponent(item.artista)}&id=${encodeURIComponent(item.nombre)}`;
+        break;
+      case 'xxx-cat':
+        loadXXXVideos(item.nombre);
+        break;
+      case 'xxx-video':
+        abrirDetalleXXX(item);
+        break;
+    }
+  };
+
+  // xxx-video usa selección propia con carpetas FÍSICAS (mueve el archivo de
+  // verdad) — no el sistema de Colecciones (virtual), que es para hentai/animación.
+  if (type === 'xxx-video') {
+    attachXXXMoveSelectable(card, item.nombre, abrir);
+    return card;
+  }
+
+  // Carpetas (Colecciones, virtual): solo para ítems de contenido reproducible,
+  // no para navegación pura (artista / xxx-cat). item_id sigue el esquema de
+  // cada tipo (ver routes/colecciones.py): hentai = nombre plano, animación = artista::nombre.
+  const TIPO_COLECCION = { hentai: 'hentai', animacion: 'animacion' };
+  const colTipo = TIPO_COLECCION[type];
+  if (colTipo && window.Colecciones) {
+    const itemId = type === 'animacion' ? `${item.artista}::${item.nombre}` : item.nombre;
+    Colecciones.addMembershipBadge(card, colTipo, itemId);
+    Colecciones.attachSelectable(card, colTipo, itemId, abrir);
+  } else {
+    card.addEventListener('click', abrir);
+  }
+
+  return card;
+}
+
+// ── Filtro de búsqueda ────────────────────────────────────────────────────────
+function filterCards(term) {
+  const q = term.trim().toLowerCase();
+  document.querySelectorAll('.media-card').forEach(card => {
+    const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+    card.style.display = (!q || title.includes(q)) ? '' : 'none';
+  });
+}
+</script>
+<script>
+// PWA: el service worker cachea el shell y las miniaturas ya vistas.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

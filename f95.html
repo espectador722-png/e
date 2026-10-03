@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>F95 Games</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root {
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2e2e2e;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e8e8; --muted:#777; --muted2:#999; --accent:#f5a623; --accent2:#ffcd6a;
+  --r:10px; --nav-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:60px}
+a{color:inherit;text-decoration:none}
+.top-nav{background:rgba(15,15,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);min-height:var(--nav-h);display:flex;align-items:center;padding:0 12px;gap:8px;position:sticky;top:0;z-index:200;overflow-x:auto;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.brand{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#111;font-size:15px;flex-shrink:0}
+.nav-link-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;white-space:nowrap;font-family:inherit}
+.nav-link-btn:hover{color:var(--text);border-color:var(--accent)}
+.nav-spacer{margin-left:auto}
+@media (max-width:480px){.brand-text{display:none}.nav-link-btn{padding:6px 10px;font-size:12px}}
+
+.wrap{max-width:1300px;margin:0 auto;padding:16px 14px}
+
+/* ── Filtros (categoría + orden) ── */
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 10px;font-size:12.5px;font-family:inherit;cursor:pointer}
+.filters select:focus{outline:none;border-color:var(--accent)}
+
+/* ── Grid de juegos ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;user-select:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column;position:relative}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card .thumb{aspect-ratio:3/4;background:var(--surface3) center/cover no-repeat;position:relative}
+.card .thumb .ver-badge{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.7);color:var(--accent2);font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px}
+.card .thumb .new-badge{position:absolute;top:6px;right:6px;background:var(--accent);color:#111;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:6px;text-transform:uppercase}
+.card .body{padding:8px 9px 10px}
+.card .t{font-size:12.5px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.card .meta{font-size:10.5px;color:var(--muted2);margin-top:4px;display:flex;justify-content:space-between}
+.state{padding:40px 10px;text-align:center;color:var(--muted);font-size:13px}
+.pager{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.pager button{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.spin{width:26px;height:26px;border:3px solid var(--surface3);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── Selección (long-press) ── */
+.card.sel-active{outline:3px solid var(--accent);outline-offset:-3px}
+.card .sel-check{position:absolute;top:6px;left:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.6);display:none;align-items:center;justify-content:center;font-size:12px;color:#fff;z-index:3}
+.card.sel-active .sel-check{display:flex;background:var(--accent);border-color:var(--accent);color:#111}
+
+/* ── Toolbar de selección (mismo patrón que manga) ── */
+#selToolbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#1c1c22;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 14px;display:none;align-items:center;gap:10px;z-index:1500;box-shadow:0 6px 24px rgba(0,0,0,.4);color:#eee;font-size:13px}
+#selToolbar.show{display:flex}
+.sel-count{font-weight:600;white-space:nowrap}
+.sel-div{width:1px;align-self:stretch;background:rgba(255,255,255,.12)}
+.sel-btn{border:none;border-radius:6px;color:#fff;padding:6px 10px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap}
+.sel-btn.dl{background:var(--accent);color:#111;font-weight:600}
+.sel-btn.cancel{background:#333;color:#eee}
+@media (max-width:480px){.sel-btn-label{display:none}}
+
+/* ── Modal de detalle ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:40px 14px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal-c{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:760px;width:100%;overflow:hidden}
+.modal-h{padding:16px;border-bottom:1px solid var(--border);position:relative}
+.modal-h h2{font-size:17px;font-weight:700}
+.modal-h .sub{font-size:12px;color:var(--muted2);margin-top:3px}
+.modal-b{padding:16px;max-height:70vh;overflow-y:auto}
+.sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:14px 0 8px}
+.sec-title:first-child{margin-top:0}
+.desc-box{font-size:12.5px;color:#bbb;line-height:1.6;white-space:pre-line;background:var(--surface2);border-radius:8px;padding:10px 12px}
+.tag-list{display:flex;flex-wrap:wrap;gap:6px}
+.tag-chip{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);font-size:11px;padding:3px 9px;border-radius:999px}
+.mod-gallery{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.mod-gallery img{height:100px;border-radius:8px;object-fit:cover;background:var(--surface3);flex-shrink:0}
+.modal-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.btn-download{flex:1;background:var(--accent);border:none;color:#111;font-weight:600;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-download:hover{filter:brightness(1.1)}
+.source-link{font-size:12px;color:var(--muted2);display:block;text-align:center;margin-top:8px}
+.empty-hint{font-size:12px;color:var(--muted);text-align:center;padding:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── Panel de cola flotante ── */
+.cola-panel{position:fixed;bottom:16px;right:16px;width:320px;max-height:60vh;background:var(--surface);border:1px solid var(--border2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:400;display:none;flex-direction:column;overflow:hidden}
+.cola-panel.show{display:flex}
+.cola-h{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.cola-h .cnt{color:var(--muted2);font-weight:400}
+.cola-h button{margin-left:auto;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px}
+.cola-list{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.cola-job{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11.5px}
+.cola-job .jt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cola-job .jsub{color:var(--muted2);margin:3px 0 5px;display:flex;justify-content:space-between}
+.cola-job .jlog{color:var(--muted);font-size:10.5px;max-height:60px;overflow-y:auto;background:var(--bg);border-radius:6px;padding:5px 7px;margin-top:4px;white-space:pre-line}
+.cola-job.error{border-color:rgba(229,57,53,.4)}
+.cola-job .jerr{color:#ef7b78;font-size:10.5px;margin-top:4px;word-break:break-word}
+.cola-job .jretry{margin-top:6px;width:100%;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:4px;font-size:11px;cursor:pointer}
+.cola-toggle{position:fixed;bottom:16px;right:16px;background:var(--accent);color:#111;border:none;border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;z-index:399;display:none;align-items:center;gap:6px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.cola-toggle.show{display:inline-flex}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-controller"></i></div><span class="brand-text">F95 Games</span></div>
+  <div class="nav-spacer"></div>
+  <button class="nav-link-btn" onclick="location.href='/inicio'"><i class="bi bi-house-door"></i> Inicio</button>
+</div>
+
+<div class="wrap">
+  <div class="filters">
+    <select id="fCat" onchange="cambiarFiltro()">
+      <option value="games">Juegos</option>
+      <option value="comics">Comics</option>
+      <option value="animations">Animaciones</option>
+      <option value="assets">Assets</option>
+    </select>
+    <select id="fSort" onchange="cambiarFiltro()">
+      <option value="date">Más reciente</option>
+      <option value="likes">Más gustados</option>
+      <option value="views">Más vistos</option>
+      <option value="rating">Mejor puntuados</option>
+      <option value="title">Título (A-Z)</option>
+    </select>
+  </div>
+  <div id="wrap">
+  <div class="state" id="loading"><div class="spin"></div></div>
+</div>
+</div>
+
+<!-- Toolbar de selección -->
+<div id="selToolbar">
+  <span class="sel-count" id="selCount">0</span>
+  <div class="sel-div"></div>
+  <button class="sel-btn dl" onclick="bulkDescargar()">
+    <i class="bi bi-download"></i><span class="sel-btn-label"> Descargar</span>
+  </button>
+  <div class="sel-div"></div>
+  <button class="sel-btn cancel" onclick="exitSelectionMode()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<!-- Modal de detalle -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-c">
+    <div class="modal-h">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+      <h2 id="mTitulo"></h2>
+      <div class="sub" id="mSub"></div>
+    </div>
+    <div class="modal-b" id="mBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<button class="cola-toggle" id="colaToggle" onclick="toggleColaPanel()"><i class="bi bi-list-ul"></i> Cola <span id="colaBadge"></span></button>
+<div class="cola-panel" id="colaPanel">
+  <div class="cola-h"><i class="bi bi-cpu"></i> Cola de traducción <span class="cnt" id="colaCnt"></span>
+    <button onclick="toggleColaPanel()">✕</button></div>
+  <div class="cola-list" id="colaList"></div>
+</div>
+
+<script>
+let PAGE=1, HAS_NEXT=false, ITEMS_BY_ID={};
+let CAT='games', SORT='date';
+const SEL = new Set();
+
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
+
+function cambiarFiltro(){
+  CAT=document.getElementById('fCat').value;
+  SORT=document.getElementById('fSort').value;
+  cargarListado(1);
+}
+
+async function cargarListado(page){
+  PAGE=page;
+  const wrap=document.getElementById('wrap');
+  wrap.innerHTML='<div class="state"><div class="spin"></div></div>';
+  try{
+    const r=await fetch(`/api/f95/listado?page=${page}&cat=${encodeURIComponent(CAT)}&sort=${encodeURIComponent(SORT)}`);
+    const d=await r.json();
+    if(d.error){ wrap.innerHTML=`<div class="state">Error: ${esc(d.error)}</div>`; return; }
+    HAS_NEXT=d.has_next;
+    if(!d.items.length){ wrap.innerHTML='<div class="state">Sin resultados.</div>'; return; }
+
+    d.items.forEach(it=>ITEMS_BY_ID[it.thread_id]=it);
+
+    wrap.innerHTML=`
+      <div class="grid" id="grid">${d.items.map(it=>`
+        <div class="card" data-id="${it.thread_id}">
+          <div class="sel-check"><i class="bi bi-check-lg"></i></div>
+          <div class="thumb" style="background-image:url('${esc(it.portada)}')">
+            ${it.nuevo?'<div class="new-badge">Nuevo</div>':''}
+            ${it.version?`<div class="ver-badge">${esc(it.version)}</div>`:''}
+          </div>
+          <div class="body">
+            <div class="t">${esc(it.titulo)}</div>
+            <div class="meta"><span>${esc(it.desarrollador)}</span><span>${esc(it.fecha)}</span></div>
+          </div>
+        </div>`).join('')}</div>
+      <div class="pager">
+        <button ${page<=1?'disabled':''} onclick="cargarListado(${page-1})"><i class="bi bi-chevron-left"></i></button>
+        <span style="color:var(--muted2);font-size:13px;align-self:center">Página ${page}</span>
+        <button ${!HAS_NEXT?'disabled':''} onclick="cargarListado(${page+1})"><i class="bi bi-chevron-right"></i></button>
+      </div>`;
+
+    document.querySelectorAll('#grid .card').forEach(card=>{
+      const id=card.dataset.id;
+      attachSelectable(card, id, () => abrirDetalle(id));
+    });
+  }catch(e){ wrap.innerHTML='<div class="state">Error de conexión.</div>'; }
+}
+
+// ── Selección long-press/click-derecho (mismo mecanismo que colecciones.js) ──
+function attachSelectable(card, id, onOpen){
+  let timer=null, longPressed=false;
+  const start=()=>{ longPressed=false; timer=setTimeout(()=>{ longPressed=true; toggleSelect(card,id); },480); };
+  const cancelTimer=()=>{ if(timer) clearTimeout(timer); timer=null; };
+
+  card.addEventListener('mousedown', start);
+  card.addEventListener('touchstart', start, {passive:true});
+  ['mouseup','mouseleave','touchend','touchmove'].forEach(evt=>card.addEventListener(evt, cancelTimer));
+  card.addEventListener('contextmenu', e=>{ e.preventDefault(); toggleSelect(card,id); });
+  card.addEventListener('click', e=>{
+    if(longPressed){ longPressed=false; return; }
+    if(SEL.size>0){ e.preventDefault(); e.stopPropagation(); toggleSelect(card,id); return; }
+    onOpen(e);
+  });
+}
+
+function toggleSelect(card, id){
+  if(SEL.has(id)){ SEL.delete(id); card.classList.remove('sel-active'); }
+  else { SEL.add(id); card.classList.add('sel-active'); }
+  updateToolbar();
+}
+
+function updateToolbar(){
+  const bar=document.getElementById('selToolbar');
+  document.getElementById('selCount').textContent=`${SEL.size} seleccionado(s)`;
+  bar.classList.toggle('show', SEL.size>0);
+}
+
+function exitSelectionMode(){
+  document.querySelectorAll('.card.sel-active').forEach(c=>c.classList.remove('sel-active'));
+  SEL.clear();
+  updateToolbar();
+}
+
+async function bulkDescargar(){
+  const juegos=[...SEL].map(id=>({thread_url:`https://f95zone.to/threads/${id}/`, titulo:(ITEMS_BY_ID[id]||{}).titulo||''}));
+  if(!juegos.length) return;
+  try{
+    const r=await fetch('/api/f95/descargar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({juegos})});
+    const d=await r.json();
+    if(d.success){ toast(`✓ ${d.encolados} juego(s) en cola de traducción`); exitSelectionMode(); }
+    else toast('Error: '+(d.error||'no se pudo encolar'));
+  }catch(e){ toast('Error de conexión'); }
+}
+
+// ── Detalle (solo mirar, sin descargar) ──────────────────────────────────────
+async function abrirDetalle(thread_id){
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('mTitulo').textContent='Cargando…';
+  document.getElementById('mSub').textContent='';
+  document.getElementById('mBody').innerHTML='<div class="state"><div class="spin"></div></div>';
+  try{
+    const r=await fetch(`/api/f95/detalle/${thread_id}`);
+    const d=await r.json();
+    if(d.error){ document.getElementById('mBody').innerHTML=`<div class="empty-hint">${esc(d.error)}</div>`; return; }
+
+    document.getElementById('mTitulo').textContent=d.titulo;
+    document.getElementById('mSub').textContent=d.version||'';
+
+    let html='';
+    if(d.sinopsis){
+      html+=`<div class="sec-title">Sinopsis</div><div class="desc-box">${esc(d.sinopsis)}</div>`;
+    }
+    if(d.categorias && d.categorias.length){
+      html+=`<div class="sec-title">Géneros</div><div class="tag-list">${d.categorias.map(c=>`<span class="tag-chip">${esc(c)}</span>`).join('')}</div>`;
+    }
+    if(d.imagenes && d.imagenes.length){
+      html+=`<div class="sec-title">Capturas</div><div class="mod-gallery">${d.imagenes.map(u=>`<img src="${esc(u)}" loading="lazy">`).join('')}</div>`;
+    }
+    html+=`<div class="modal-actions">
+      <button class="btn-download" onclick="descargarUno('${esc(thread_id)}','${esc(d.titulo).replace(/'/g,"\\'")}')">
+        <i class="bi bi-download"></i> Descargar y traducir</button>
+    </div>`;
+    if(d.thread_url){
+      html+=`<a class="source-link" href="${esc(d.thread_url)}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Ver thread original</a>`;
+    }
+    document.getElementById('mBody').innerHTML=html;
+  }catch(e){
+    document.getElementById('mBody').innerHTML='<div class="empty-hint">Error de conexión.</div>';
+  }
+}
+
+async function descargarUno(thread_id, titulo){
+  try{
+    const r=await fetch('/api/f95/descargar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({juegos:[{thread_url:`https://f95zone.to/threads/${thread_id}/`, titulo}]})});
+    const d=await r.json();
+    if(d.success){ toast('✓ En cola de traducción'); cerrarModal(); }
+    else toast('Error: '+(d.error||'no se pudo encolar'));
+  }catch(e){ toast('Error de conexión'); }
+}
+
+function cerrarModal(){ document.getElementById('modal').classList.remove('show'); }
+
+// ── Panel de cola ──────────────────────────────────────────────────────────
+let COLA_ABIERTA=false;
+function toggleColaPanel(){
+  COLA_ABIERTA=!COLA_ABIERTA;
+  document.getElementById('colaPanel').classList.toggle('show', COLA_ABIERTA);
+}
+
+async function pollCola(){
+  try{
+    const r=await fetch('/api/f95/cola');
+    const d=await r.json();
+    const jobs=d.jobs||[];
+    const toggle=document.getElementById('colaToggle');
+    if(!jobs.length){ toggle.classList.remove('show'); document.getElementById('colaPanel').classList.remove('show'); COLA_ABIERTA=false; return; }
+
+    toggle.classList.add('show');
+    const activos=jobs.filter(j=>j.estado==='pendiente'||j.estado==='procesando').length;
+    document.getElementById('colaBadge').textContent=activos?`(${activos})`:'';
+    document.getElementById('colaCnt').textContent=`${jobs.length}`;
+
+    if(COLA_ABIERTA){
+      document.getElementById('colaList').innerHTML=jobs.slice().reverse().map(j=>`
+        <div class="cola-job ${j.estado==='error'?'error':''}">
+          <div class="jt">${esc(j.titulo||j.thread_url)}</div>
+          <div class="jsub"><span>${j.estado}</span></div>
+          ${j.log && j.log.length?`<div class="jlog">${esc(j.log.slice(-4).join('\\n'))}</div>`:''}
+          ${j.error?`<div class="jerr">⚠ ${esc(j.error)}</div><button class="jretry" onclick="reintentarJob('${j.id}')"><i class="bi bi-arrow-clockwise"></i> Reintentar</button>`:''}
+        </div>`).join('');
+    }
+  }catch(e){}
+}
+
+async function reintentarJob(jid){
+  await fetch('/api/f95/cola/reintentar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:jid})});
+  pollCola();
+}
+
+setInterval(pollCola, 3000);
+pollCola();
+
+cargarListado(1);
+</script>
+</body>
+</html>

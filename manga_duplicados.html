@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mangas duplicados</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link href="/static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/vendor/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --surface3:#2e2e2e;
+  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8e8e8; --muted:#777; --muted2:#999; --accent:#f5a623; --accent2:#ffcd6a;
+  --pink:#ec407a; --danger:#e53935; --success:#43a047; --info:#42a5f5; --r:10px; --nav-h:52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:40px}
+a{color:inherit;text-decoration:none}
+.top-nav{background:rgba(15,15,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);min-height:var(--nav-h);display:flex;align-items:center;padding:0 12px;gap:8px;position:sticky;top:0;z-index:200}
+.brand{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.brand-icon{width:28px;height:28px;background:var(--pink);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#111;font-size:15px;flex-shrink:0}
+.nav-link-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;white-space:nowrap}
+.nav-link-btn:hover{color:var(--text);border-color:var(--accent)}
+.nav-spacer{margin-left:auto}
+@media(max-width:560px){.top-nav{flex-wrap:wrap;padding:8px 12px}.nav-spacer{display:none}}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 14px}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.inp{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;width:90px}
+.inp:focus{border-color:var(--accent)}
+.btn2{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.btn2:hover{border-color:var(--accent);color:#fff}
+.btn2:disabled{opacity:.5;cursor:not-allowed}
+.btn2.active{border-color:var(--accent);color:#fff;background:var(--surface3)}
+.grupo-id-tag{background:var(--surface3);border-radius:999px;padding:3px 10px;font-weight:600;color:var(--info)}
+.muted{color:var(--muted2);font-size:12.5px}
+
+#estado{padding:40px 0;text-align:center;color:var(--muted2)}
+
+.par{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.par-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px}
+.par-head .cat{background:var(--surface3);border-radius:999px;padding:3px 10px;font-weight:600;color:var(--accent2)}
+.par-head .dist{color:var(--muted2)}
+.par-body{display:flex;gap:14px;flex-wrap:wrap}
+.item{flex:1;min-width:220px;display:flex;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px}
+.item img{width:70px;height:100px;object-fit:cover;border-radius:6px;background:var(--surface3);flex-shrink:0}
+.item-info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.item-info .nom{font-size:12.5px;font-weight:600;word-break:break-word;line-height:1.3}
+.item-info .cat-mini{font-size:11px;color:var(--muted)}
+.item-info button{align-self:flex-start;background:var(--danger);border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-top:auto}
+.item-info button:hover{filter:brightness(1.1)}
+.item-info button:disabled{opacity:.5;cursor:not-allowed}
+.par.resuelto{opacity:.35;pointer-events:none}
+.no-dup{text-align:center;padding:60px 0;color:var(--muted2)}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="brand"><div class="brand-icon"><i class="bi bi-images"></i></div><span>Mangas duplicados</span></div>
+  <div class="nav-spacer"></div>
+  <a href="/video-duplicados" class="nav-link-btn"><i class="bi bi-camera-reels"></i> Duplicados de video</a>
+  <a href="/manga" class="nav-link-btn"><i class="bi bi-arrow-left"></i> Volver</a>
+</div>
+
+<div class="wrap">
+  <div class="toolbar" style="margin-bottom:8px">
+    <button class="btn2 active" id="tab-portada" onclick="cambiarTab('portada')"><i class="bi bi-image"></i> Por portada</button>
+    <button class="btn2" id="tab-id" onclick="cambiarTab('id')"><i class="bi bi-fingerprint"></i> Por ID de galería</button>
+  </div>
+
+  <div class="toolbar" id="toolbarPortada">
+    <span class="muted">Umbral (distancia máx.):</span>
+    <input id="umbral" class="inp" type="number" value="8" min="0" max="20">
+    <button class="btn2" id="btnEscanear"><i class="bi bi-search"></i> Escanear</button>
+    <button class="btn2" id="btnRefresh"><i class="bi bi-arrow-clockwise"></i> Forzar recalcular</button>
+    <span class="muted" id="resumen"></span>
+  </div>
+  <div class="toolbar" id="toolbarId" style="display:none">
+    <button class="btn2" id="btnEscanearId"><i class="bi bi-search"></i> Escanear</button>
+    <button class="btn2" id="btnRefreshId"><i class="bi bi-arrow-clockwise"></i> Forzar recalcular</button>
+    <span class="muted" id="resumenId"></span>
+  </div>
+
+  <div id="estado">Presioná Escanear para buscar mangas duplicados por portada.</div>
+  <div id="lista"></div>
+</div>
+
+<script>
+const estado = document.getElementById('estado');
+const lista = document.getElementById('lista');
+const resumen = document.getElementById('resumen');
+
+function previewUrl(categoria, nombreArchivo) {
+  return `/get_manga_preview/${encodeURIComponent(categoria)}/${encodeURIComponent(nombreArchivo)}`;
+}
+
+function renderItem(par, lado, otroLado) {
+  const it = par[lado];
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.innerHTML = `
+    <img src="${previewUrl(par.categoria, it.preview)}" alt="">
+    <div class="item-info">
+      <div class="nom">${it.nombre}</div>
+      <div class="cat-mini">${par.categoria}</div>
+      <button type="button"><i class="bi bi-trash"></i> Borrar este</button>
+    </div>
+  `;
+  div.querySelector('button').addEventListener('click', () => borrar(par, lado, otroLado, div.closest('.par')));
+  return div;
+}
+
+async function borrar(par, lado, otroLado, parEl) {
+  const it = par[lado];
+  if (!confirm(`¿Borrar "${it.nombre}" (${par.categoria})? Esta acción no se puede deshacer.`)) return;
+  const btn = parEl.querySelectorAll('button');
+  btn.forEach(b => b.disabled = true);
+  try {
+    const res = await fetch('/delete_manga', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoria: par.categoria, manga_name: it.nombre, preview_name: it.preview })
+    });
+    const data = await res.json();
+    if (data.success) {
+      parEl.classList.add('resuelto');
+    } else {
+      alert('Error: ' + (data.error || 'no se pudo borrar'));
+      btn.forEach(b => b.disabled = false);
+    }
+  } catch (e) {
+    alert('Error de red: ' + e.message);
+    btn.forEach(b => b.disabled = false);
+  }
+}
+
+function renderPar(par) {
+  const div = document.createElement('div');
+  div.className = 'par';
+  const head = document.createElement('div');
+  head.className = 'par-head';
+  head.innerHTML = `<span class="cat">${par.categoria}</span><span class="dist">distancia ${par.distancia}</span>`;
+  const body = document.createElement('div');
+  body.className = 'par-body';
+  body.appendChild(renderItem(par, 'a', 'b'));
+  body.appendChild(renderItem(par, 'b', 'a'));
+  div.appendChild(head);
+  div.appendChild(body);
+  return div;
+}
+
+async function escanear(refresh) {
+  estado.style.display = 'block';
+  estado.textContent = 'Escaneando previews (puede tardar unos segundos la primera vez)...';
+  lista.innerHTML = '';
+  resumen.textContent = '';
+  const umbral = document.getElementById('umbral').value || 8;
+  try {
+    const url = `/api/manga/duplicados?umbral=${encodeURIComponent(umbral)}${refresh ? '&refresh=1' : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+    estado.style.display = 'none';
+    if (!items.length) {
+      lista.innerHTML = '<div class="no-dup"><i class="bi bi-check-circle" style="font-size:28px"></i><br><br>No se encontraron duplicados con este umbral.</div>';
+      return;
+    }
+    resumen.textContent = `${items.length} par(es) encontrado(s)`;
+    items.forEach(par => lista.appendChild(renderPar(par)));
+  } catch (e) {
+    estado.textContent = 'Error escaneando: ' + e.message;
+  }
+}
+
+document.getElementById('btnEscanear').addEventListener('click', () => escanear(false));
+document.getElementById('btnRefresh').addEventListener('click', () => escanear(true));
+
+// ── Tab: duplicados por ID de galería (source+slug), independiente del nombre ──
+let TAB = 'portada';
+
+function cambiarTab(t) {
+  TAB = t;
+  document.getElementById('tab-portada').classList.toggle('active', t === 'portada');
+  document.getElementById('tab-id').classList.toggle('active', t === 'id');
+  document.getElementById('toolbarPortada').style.display = t === 'portada' ? 'flex' : 'none';
+  document.getElementById('toolbarId').style.display = t === 'id' ? 'flex' : 'none';
+  lista.innerHTML = '';
+  resumen.textContent = '';
+  document.getElementById('resumenId').textContent = '';
+  estado.style.display = 'block';
+  estado.textContent = t === 'portada'
+    ? 'Presioná Escanear para buscar mangas duplicados por portada.'
+    : 'Presioná Escanear para buscar el mismo manga descargado dos veces (mismo ID de origen, título distinto).';
+}
+
+function renderItemId(grupo, item) {
+  const div = document.createElement('div');
+  div.className = 'item';
+  const img = item.preview
+    ? `<img src="${previewUrl(item.categoria, item.preview)}" alt="">`
+    : `<div style="width:70px;height:100px;border-radius:6px;background:var(--surface3);flex-shrink:0"></div>`;
+  div.innerHTML = `
+    ${img}
+    <div class="item-info">
+      <div class="nom">${item.nombre}</div>
+      <div class="cat-mini">${item.categoria}</div>
+      <button type="button"><i class="bi bi-trash"></i> Borrar este</button>
+    </div>
+  `;
+  div.querySelector('button').addEventListener('click', () => borrarItemId(grupo, item, div.closest('.par')));
+  return div;
+}
+
+async function borrarItemId(grupo, item, parEl) {
+  if (!confirm(`¿Borrar "${item.nombre}" (${item.categoria})? Esta acción no se puede deshacer.`)) return;
+  const btns = parEl.querySelectorAll('button');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const res = await fetch('/delete_manga', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoria: item.categoria, manga_name: item.nombre, preview_name: item.preview })
+    });
+    const data = await res.json();
+    if (data.success) {
+      item._borrado = true;
+      const div = [...parEl.querySelectorAll('.item')].find(d => d.querySelector('.nom').textContent === item.nombre);
+      if (div) div.style.opacity = '.35';
+      const restantes = grupo.items.filter(it => !it._borrado);
+      if (restantes.length < 2) parEl.classList.add('resuelto');
+    } else {
+      alert('Error: ' + (data.error || 'no se pudo borrar'));
+      btns.forEach(b => b.disabled = false);
+    }
+  } catch (e) {
+    alert('Error de red: ' + e.message);
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+function renderGrupoId(grupo) {
+  const div = document.createElement('div');
+  div.className = 'par';
+  const head = document.createElement('div');
+  head.className = 'par-head';
+  head.innerHTML = `<span class="grupo-id-tag">${grupo.source}:${grupo.slug}</span><span class="dist">${grupo.items.length} copias</span>`;
+  const body = document.createElement('div');
+  body.className = 'par-body';
+  grupo.items.forEach(it => body.appendChild(renderItemId(grupo, it)));
+  div.appendChild(head);
+  div.appendChild(body);
+  return div;
+}
+
+async function escanearId(refresh) {
+  estado.style.display = 'block';
+  estado.textContent = 'Escaneando metadata.json de todas las secciones...';
+  lista.innerHTML = '';
+  document.getElementById('resumenId').textContent = '';
+  try {
+    const url = `/api/manga/duplicados-id${refresh ? '?refresh=1' : ''}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.items || [];
+    estado.style.display = 'none';
+    if (!items.length) {
+      lista.innerHTML = '<div class="no-dup"><i class="bi bi-check-circle" style="font-size:28px"></i><br><br>No hay mangas con el mismo ID de galería duplicado.</div>';
+      return;
+    }
+    document.getElementById('resumenId').textContent = `${items.length} grupo(s) encontrado(s)`;
+    items.forEach(grupo => lista.appendChild(renderGrupoId(grupo)));
+  } catch (e) {
+    estado.textContent = 'Error escaneando: ' + e.message;
+  }
+}
+
+document.getElementById('btnEscanearId').addEventListener('click', () => escanearId(false));
+document.getElementById('btnRefreshId').addEventListener('click', () => escanearId(true));
+</script>
+</body>
+</html>
