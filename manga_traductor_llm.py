@@ -48,6 +48,35 @@ def _procesar_pagina_llm_http(pkl_path: str, cache_file: str, manga_dir: str | N
         raise RuntimeError(f"worker_server /llm_process respondió {r.status_code}: {r.text[:500]}")
     with open(cache_file, "wb") as f:
         f.write(r.content)
+    _anotar_calidad(cache_file, manga_dir, r.headers.get("X-Sin-Traducir"))
+
+
+def _anotar_calidad(cache_file: str, manga_dir: str | None, encabezado: str | None) -> None:
+    """Anota en TRADUCTOR_CACHE_DIR/_reporte_calidad.jsonl las páginas que
+    quedaron con diálogos sin traducir (lo informa worker_server), para poder
+    encontrarlas y retraducirlas en vez de descubrirlas leyendo."""
+    if not encabezado:
+        return
+    import json
+    import logging
+    from datetime import datetime
+    try:
+        lineas = json.loads(encabezado)
+    except ValueError:
+        return
+    entrada = {
+        "fecha": datetime.now().isoformat(timespec="seconds"),
+        "manga": os.path.basename(manga_dir or ""),
+        "pagina_cache": os.path.basename(cache_file),
+        "sin_traducir": lineas,
+    }
+    logging.getLogger(__name__).warning(
+        "Página con %d diálogo(s) sin traducir en %s: %s", len(lineas), entrada["manga"], lineas[:3])
+    try:
+        with open(os.path.join(Config.TRADUCTOR_CACHE_DIR, "_reporte_calidad.jsonl"), "a", encoding="utf-8") as f:
+            f.write(json.dumps(entrada, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
 
 
 def _procesar_pagina_llm_subprocess(pkl_path: str, cache_file: str, manga_dir: str | None) -> None:

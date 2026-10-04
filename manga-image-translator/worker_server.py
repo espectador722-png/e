@@ -313,6 +313,11 @@ async def endpoint_llm_process(request: Request):
         raise HTTPException(503, str(e))
     for idx in indices_dialogo:
         resultados[idx] = postprocesar(resultados[idx])
+    # Control de calidad: diálogos que quedaron sin traducir viajan en un
+    # encabezado (JSON en ASCII) para que la app los anote en su reporte.
+    sin_traducir = sc.dialogos_sin_traducir(text_regions, resultados, indices_dialogo)
+    for texto in sin_traducir:
+        print(f"[fase2] diálogo que quedó sin traducir: {texto[:80]!r}", file=sys.stderr)
 
     sc.fase2_aplicar(text_regions, resultados, clasificacion_color)
 
@@ -326,7 +331,11 @@ async def endpoint_llm_process(request: Request):
 
     buf = io.BytesIO()
     Image.fromarray(img_final).save(buf, format="PNG")
-    return Response(content=buf.getvalue(), media_type="image/png")
+    headers = {}
+    if sin_traducir:
+        import json
+        headers["X-Sin-Traducir"] = json.dumps([t[:80] for t in sin_traducir[:10]])
+    return Response(content=buf.getvalue(), media_type="image/png", headers=headers)
 
 
 # Video subtitles (routes/subtitles.py in the Flask app, which runs on the

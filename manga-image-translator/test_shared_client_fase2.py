@@ -81,3 +81,30 @@ def test_fase2_aplicar_sigue_romanizando_gemidos():
 ])
 def test_parece_dialogo_real_en_kana(texto, esperado):
     assert sc._parece_dialogo_real(texto) is esperado
+
+
+# ── Control de calidad ─────────────────────────────────────────────────────
+
+@_pt.mark.parametrize("texto,esperado", [
+    ("マフサジ中", True), ("中", True), ("ありがとう", True),
+    ("¿A dónde vas?", False), ("Graciasメ", False), ("Por supuesto.", False),
+])
+def test_sigue_en_japones(texto, esperado):
+    assert sc._sigue_en_japones(texto) is esperado
+
+def test_terminar_dialogo_rechaza_un_eco_en_japones():
+    # Antes: se le quitaba el kana y quedaba "中" dibujado como traducción
+    assert sc._terminar_dialogo("マフサジ中", "", "マフサジ中") is None
+    assert sc._terminar_dialogo("Por supuesto.", "", "もちろんです") == "Por supuesto."
+
+def test_dialogos_sin_traducir():
+    regs = [R("もちろんです"), R("WHERE ARE YOU?"), R("はぁ…♡"), R("できるはずだ")]
+    resultados = ["Por supuesto.", "WHERE ARE YOU?", "はぁ…♡", "できるはずだ"]
+    assert sc.dialogos_sin_traducir(regs, resultados, [0, 1, 2, 3]) == ["WHERE ARE YOU?", "できるはずだ"]
+
+def test_cooldown_se_guarda_y_lee(tmp_path, monkeypatch):
+    archivo = tmp_path / "_engine_cooldown.json"
+    monkeypatch.setattr(sc, "_ENGINE_COOLDOWN_FILE", str(archivo))
+    sc._guardar_engine_state({"yandex": {"streak": 2, "cooldown_until": 5.0}})
+    assert sc._cargar_engine_state() == {"yandex": {"streak": 2, "cooldown_until": 5.0}}
+    assert [p.name for p in tmp_path.iterdir()] == ["_engine_cooldown.json"]

@@ -214,11 +214,18 @@ def _cargar_engine_state() -> dict:
 
 
 def _guardar_engine_state(estado: dict) -> None:
+    # Escritura atómica: el worker y los subprocess escriben este archivo a la
+    # vez; uno escrito a medias se leía como {} y se perdían los cooldowns.
+    tmp = f"{_ENGINE_COOLDOWN_FILE}.{os.getpid()}.{threading.get_ident()}.tmp"
     try:
-        with open(_ENGINE_COOLDOWN_FILE, "w", encoding="utf-8") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(estado, f)
+        os.replace(tmp, _ENGINE_COOLDOWN_FILE)
     except OSError:
-        pass
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
 
 
 _yandex_ucid = None
@@ -621,8 +628,22 @@ def _preparar_dialogo(text: str):
     return "core", core, simbolos
 
 
+def _sigue_en_japones(traduccion: str) -> bool:
+    """True si el motor devolvió el texto (casi) sin traducir: más caracteres
+    japoneses que letras latinas, o algún kanji. Un kana suelto pegado a una
+    traducción buena ("Graciasメ") se limpia aparte, no cuenta acá."""
+    cjk = len(_CJK_RE.findall(traduccion))
+    latinas = len(re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñü]", traduccion))
+    return cjk > latinas or bool(re.search(r"[一-鿿]", traduccion))
+
+
 def _terminar_dialogo(traduccion: str, simbolos, core: str) -> str | None:
-    """Post-translation cleanup of one region (see _preparar_dialogo)."""
+    """Post-translation cleanup of one region (see _preparar_dialogo).
+    None si el motor devolvió japonés: antes se le borraba el kana y quedaba
+    el kanji suelto ("マフサジ中" -> "中") dibujado como si fuera la
+    traducción; con None la línea pasa al siguiente motor / NLLB."""
+    if _sigue_en_japones(traduccion):
+        return None
     traduccion = _KANA_RE.sub("", "".join(c for c in traduccion if c not in _SIMBOLOS_DECORATIVOS)).strip()
     traduccion = _ajustar_inicio(_quitar_ingles(traduccion), core)
     traduccion = _abrir_signos(_colapsar_repeticiones(traduccion).replace(".…", "…"))
@@ -1234,6 +1255,23 @@ def regiones_sin_traducir(regions, indices_dialogo) -> list[str]:
     return salida
 
 
+def dialogos_sin_traducir(regions, resultados, indices_dialogo) -> list[str]:
+    """Control de calidad al final de fase 2: diálogos que, después de todos
+    los motores, siguen iguales al original o en japonés (sin contar SFX,
+    gemidos ni interjecciones, que se dejan así a propósito)."""
+    salida = []
+    for i in indices_dialogo:
+        original = (regions[i].text or "").strip()
+        final = (resultados[i] or "").strip()
+        if not original or not any(c.isalpha() for c in original):
+            continue
+        if _es_sfx_conocida(original) or _es_solo_gemido(original):
+            continue
+        if final == original or _sigue_en_japones(final):
+            salida.append(original)
+    return salida
+
+
 def avisar_sin_traducir(regions, indices_dialogo) -> None:
     for texto in regiones_sin_traducir(regions, indices_dialogo):
         print(f"[fase2] queda sin traducir (no parece diálogo): {texto[:80]!r}", file=sys.stderr)
@@ -1407,6 +1445,8 @@ def _modo_llm_process(argv: list[str]) -> int:
     resultados = [region.text for region in text_regions]
     faltan = _traducir_pagina(text_regions, indices_dialogo, resultados, manga_dir)
     _completar_con_nllb(text_regions, faltan, resultados)
+    for texto in dialogos_sin_traducir(text_regions, resultados, indices_dialogo):
+        print(f"[fase2] diálogo que quedó sin traducir: {texto[:80]!r}", file=sys.stderr)
 
     # region.font_size is left alone: resize_regions_to_font_size measures the
     # real balloon itself. _es_bubble_real tells the renderer whether to trust
