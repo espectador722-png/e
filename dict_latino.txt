@@ -1,0 +1,99 @@
+# Unificación a español LATINO NEUTRO (pedido del usuario 2026-09-27).
+# Yandex no deja elegir variante y mezcla España ("vale", "fóllame") con
+# México ("¡Órale!" para Wow/Cool/よし, reproducido). Aplicado en
+# worker_server.postprocesar DESPUÉS de traducir, a todo el diálogo.
+#
+# Formato: patrón_regex<TAB>reemplazo. Siempre case-insensitive y con \b
+# implícito a ambos lados; el reemplazo respeta mayúsculas del original
+# (VALE -> ESTÁ BIEN, Vale -> Está bien). Solo palabras marcadas de una
+# región; lo que ya es neutro no se toca.
+
+# --- México -> neutro ---
+órale	guau
+ándale	vamos
+híjole	vaya
+chid[oa]	genial
+chid[oa]s	geniales
+güey	amigo
+la neta	la verdad
+
+# --- España -> latino ---
+vosotros	ustedes
+vosotras	ustedes
+vuestro	su
+vuestra	su
+vuestros	sus
+vuestras	sus
+# Verbos de vosotros: irregulares/con cambio de raíz a mano; el resto
+# (-áis -> -an, -éis -> -en) lo hace worker_server._latinizar.
+sois	son
+estáis	están
+vais	van
+habéis	han
+tenéis	tienen
+queréis	quieren
+podéis	pueden
+volvéis	vuelven
+pensáis	piensan
+sentís	sienten
+decís	dicen
+venís	vienen
+vivís	viven
+salís	salen
+guay	genial
+gilipollas	idiota
+capullo	idiota
+# coño: exclamación -> carajo (en worker_server._latinizar); sustantivo:
+coño	vagina
+coños	vaginas
+coñito	vaginita
+joder	maldición
+hostia	mierda
+ordenador	computadora
+móvil	celular
+chaval	chico
+chavala	chica
+polla	verga
+pollas	vergas
+
+# follar (España) -> coger (latino), por forma
+follar	coger
+follarte	cogerte
+follarme	cogerme
+follarla	cogerla
+follarlo	cogerlo
+follando	cogiendo
+follándome	cogiéndome
+follándote	cogiéndote
+follado	cogido
+follada	cogida
+fóllame	cógeme
+fóllate	cógete
+fóllala	cógela
+follo	cojo
+folla	coge
+follas	coges
+follamos	cogemos
+follaron	cogieron
+follé	cogí
+follaste	cogiste
+folló	cogió
+
+# correrse (España) -> venirse (latino); solo formas reflexivas, "correr"
+# (run) suelto no se toca.
+me corro	me vengo
+te corres	te vienes
+se corre	se viene
+me corrí	me vine
+te corriste	te viniste
+se corrió	se vino
+correrme	venirme
+correrte	venirte
+correrse	venirse
+corriéndome	viniéndome
+corriéndote	viniéndote
+corriéndose	viniéndose
+me estoy corriendo	me estoy viniendo
+te estás corriendo	te estás viniendo
+se está corriendo	se está viniendo
+córrete	vente

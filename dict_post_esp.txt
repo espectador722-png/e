@@ -1,0 +1,36 @@
+# Diccionario de post-corrección (post_dict) — aplicado DESPUÉS de traducir,
+# sobre la traducción en español ya generada por NLLB. Formato: cada línea
+# "patrón_regex reemplazo" (sin comillas). Con TAB como separador, patrón y
+# reemplazo pueden tener espacios; sin TAB se separa por espacio (2 tokens). Líneas
+# vacías o que empiezan con # / // se ignoran. re.sub con flags por defecto,
+# usar (?i) al inicio del patrón para case-insensitive si hace falta.
+#
+# Objetivo: corregir falsos amigos / modismos que NLLB traduce literal y sin
+# sentido en este material (confirmado comparando contra el texto original
+# en inglés, no adivinado). Cada entrada acá es un caso real observado, no
+# especulativo — agregar nuevas líneas a medida que se detecten más casos
+# concretos, NO intentar cubrir vocabulario general (eso no escala, ver
+# fedcruz_no_dar_vueltas... — este archivo es correctivo puntual, no un
+# diccionario completo de idioma).
+
+(?i)voy a agarrar algunos tejidos	voy a buscar unos pañuelos
+(?i)algunos tejidos	unos pañuelos
+(?i)manténgase,? espera,
+
+# "Cum-ming"/"cumming" (jerga sexual) — ni NLLB ni Yandex lo traducen de
+# forma confiable: a veces queda literal ("Soy Cum-ming"), a veces NLLB
+# alucina algo sin relación (ver _es_alucinacion). Caso real reproducido
+# 2026-09-21/22 sobre "132cm Fuwa Kitsu...": 'IM CUM- MING !!!!' -> Yandex
+# '¡Soy Cum-ming!!!!' sin traducir la palabra clave. NOTA: load_dictionary
+# (manga_translator.py) parsea cada línea con str.split() y exige EXACTO 2
+# tokens (patrón, reemplazo) separados por espacio — ni el patrón ni el
+# reemplazo pueden tener espacio literal sin romper el parseo (bug
+# preexistente del proyecto, ver líneas 15-16 arriba que ya lo sufrían antes
+# de este cambio). Por eso el reemplazo va como una sola palabra. La frase
+# completa "soy/im cum-ming" -> "me estoy corriendo" (con conjugación
+# correcta) se resuelve aparte en worker_server.py ANTES de que este archivo
+# se aplique, justamente porque necesita un reemplazo multi-palabra que este
+# formato de diccionario no puede expresar. Esta línea queda como fallback
+# para cuando "cum-ming" aparece sin "soy/im" antes (ej. dentro de otra
+# oración) y el reemplazo de una sola palabra sigue siendo aceptable.
+(?i)cum-?\s*mings?3? corriéndome

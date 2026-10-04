@@ -1,0 +1,188 @@
+[31m⚠️  Warning: You are using the experimental Python version of this project.[0m
+[33mThis version is unstable and may break frequently. Please switch to the Rust rewrite for reliability! The rust version is an early release so it might still have some issues. https://github.com/frederik-uni/manga-image-translator-rust[0m
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/512 [00:00<?, ?it/s]Loading weights: 100%|##########| 512/512 [00:00<00:00, 8191.81it/s]
+[DEBUG_LINE] idx=0 area=548.8 bbox=[658  33  48  11] font_size=11.0
+[DEBUG_LINE] idx=1 area=377.5 bbox=[663  44  35  10] font_size=11.0
+[DEBUG_LINE] idx=2 area=567.1 bbox=[657  54  50  11] font_size=12.0
+[DEBUG_LINE] idx=3 area=914.6 bbox=[648  64  67  13] font_size=14.0
+[DEBUG_LINE] idx=4 area=281.1 bbox=[671  75  23  11] font_size=12.0
+[DEBUG_LINE] idx=5 area=921.9 bbox=[648  84  68  15] font_size=13.0
+[DEBUG_LINE] idx=6 area=304.9 bbox=[498  67  26  11] font_size=11.0
+[DEBUG_LINE] idx=7 area=432.9 bbox=[494  78  38  11] font_size=11.0
+[DEBUG_LINE] idx=8 area=598.1 bbox=[487  89  55  10] font_size=11.0
+[DEBUG_LINE] idx=9 area=202.1 bbox=[160 162  15  12] font_size=13.0
+[DEBUG_LINE] idx=10 area=414.6 bbox=[150 175  36  11] font_size=11.0
+[DEBUG_LINE] idx=11 area=426.8 bbox=[149 185  37  11] font_size=12.0
+[DEBUG_LINE] idx=12 area=286.6 bbox=[155 197  25  11] font_size=11.0
+[DEBUG_LINE] idx=13 area=473.6 bbox=[150 205  36  15] font_size=13.03840446472168
+[DEBUG_LINE] idx=14 area=362.9 bbox=[153 217  26  13] font_size=13.0
+[DEBUG_LINE] idx=15 area=230.0 bbox=[346 306  17  12] font_size=13.0
+[DEBUG_LINE] idx=16 area=337.5 bbox=[339 318  28  13] font_size=12.041594505310059
+[DEBUG_LINE] idx=17 area=450.0 bbox=[338 330  33  13] font_size=14.0
+[DEBUG_LINE] idx=18 area=392.0 bbox=[339 342  29  13] font_size=14.0
+[DEBUG_LINE] idx=19 area=230.0 bbox=[ 70 370  17  12] font_size=13.0
+[DEBUG_LINE] idx=20 area=475.6 bbox=[ 57 383  42  11] font_size=11.0
+[DEBUG_LINE] idx=21 area=250.0 bbox=[ 66 395  22  11] font_size=11.0
+[DEBUG_LINE] idx=22 area=232.3 bbox=[ 68 408  21  10] font_size=11.0
+[DEBUG_LINE] idx=23 area=273.8 bbox=[ 68 419  22  12] font_size=12.0
+[DEBUG_LINE] idx=24 area=293.8 bbox=[ 67 431  24  11] font_size=12.0
+[DEBUG_LINE] idx=25 area=699.5 bbox=[ 52 599  39  17] font_size=18.0
+[DEBUG_LINE] idx=26 area=709.0 bbox=[ 52 616  39  17] font_size=18.0
+[DEBUG_LINE] idx=27 area=576.1 bbox=[ 55 634  34  16] font_size=17.0
+[DEBUG_LINE] idx=28 area=377.5 bbox=[645 394  28  13] font_size=14.0
+[DEBUG_LINE] idx=29 area=428.3 bbox=[643 405  31  13] font_size=13.0
+[DEBUG_LINE] idx=30 area=256.1 bbox=[646 417  22  11] font_size=11.0
+[DEBUG_LINE] idx=31 area=548.8 bbox=[634 428  48  11] font_size=11.0
+[DEBUG_LINE] idx=32 area=567.1 bbox=[634 438  50  11] font_size=11.0
+[DEBUG_LINE] idx=33 area=255.5 bbox=[649 449  21  11] font_size=12.0
+[DEBUG_LINE] idx=34 area=829.3 bbox=[623 460  73  11] font_size=11.0
+[DEBUG_LINE] idx=35 area=498.5 bbox=[632 471  54   9] font_size=9.0
+[DEBUG_LINE] idx=36 area=476.2 bbox=[636 482  44  10] font_size=11.0
+[DEBUG_LINE] idx=37 area=597.5 bbox=[476 621  52  11] font_size=11.0
+[DEBUG_LINE] idx=38 area=428.3 bbox=[486 632  31  13] font_size=13.0
+[DEBUG_LINE] idx=39 area=407.7 bbox=[488 641  29  14] font_size=14.0
+[DEBUG_LINE] idx=40 area=255.5 bbox=[692 754  21  11] font_size=12.0
+[DEBUG_LINE] idx=41 area=377.5 bbox=[690 764  28  13] font_size=14.0
+[DEBUG_LINE] idx=42 area=249.1 bbox=[690 775  21  11] font_size=12.0
+[DEBUG_LINE] idx=43 area=353.7 bbox=[688 786  31  11] font_size=12.0
+[DEBUG_LINE] idx=44 area=475.6 bbox=[683 798  42  11] font_size=11.0
+[DEBUG_LINE] idx=45 area=588.0 bbox=[682 807  43  13] font_size=13.0
+[DEBUG_LINE] idx=46 area=365.8 bbox=[687 819  32  11] font_size=11.0
+[DEBUG_LINE] idx=47 area=482.0 bbox=[682 830  44  10] font_size=11.0
+[DEBUG_LINE] idx=48 area=281.1 bbox=[542 774  23  11] font_size=12.0
+[DEBUG_LINE] idx=49 area=428.3 bbox=[521 805  31  13] font_size=13.0
+[DEBUG_LINE] idx=50 area=428.3 bbox=[521 815  31  13] font_size=13.0
+[DEBUG_LINE] idx=51 area=623.1 bbox=[204 908  39  15] font_size=16.0
+[DEBUG_LINE] idx=52 area=707.3 bbox=[200 925  45  15] font_size=16.0
+[DEBUG_LINE] idx=53 area=1052.5 bbox=[189 941  67  17] font_size=16.0
+[DEBUG_LINE] idx=54 area=776.1 bbox=[201 958  43  17] font_size=18.0
+[DEBUG_LINE] idx=55 area=368.5 bbox=[ 38 778  25  14] font_size=15.0
+[DEBUG_LINE] idx=56 area=392.0 bbox=[ 37 792  29  13] font_size=13.0
+[DEBUG_LINE] idx=57 area=487.8 bbox=[ 29 805  45  10] font_size=10.0
+[DEBUG_LINE] idx=58 area=471.8 bbox=[ 33 816  35  13] font_size=14.0
+[DEBUG_LINE] idx=59 area=450.0 bbox=[ 35 829  33  13] font_size=13.0
+[DEBUG_LINE] idx=60 area=439.0 bbox=[ 32 842  38  11] font_size=12.0
+[DEBUG_LINE] idx=61 area=304.3 bbox=[ 37 854  28  12] font_size=11.045360565185547
+[DEBUG_LINE] idx=62 area=364.7 bbox=[ 36 865  28  14] font_size=14.142135620117188
+[DEBUG_DROP] REASON=dist_too_far label=1 rect=(197,11,17,18) dist=145.7 unit=13.0
+[DEBUG_DROP] REASON=dist_too_far label=2 rect=(188,15,5,4) dist=146.4 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=3 rect=(181,18,3,4) dist=142.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=4 rect=(188,21,5,7) dist=139.0 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=5 rect=(419,32,17,20) dist=75.8 unit=11.0
+[DEBUG_DROP] REASON=area1>=area2 label=8 rect=(399,38,25,44) area1=601 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=10 rect=(200,44,4,5) dist=119.1 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=15 rect=(192,54,4,4) dist=108.2 unit=10.0
+[DEBUG_DROP] REASON=area1>=area2 label=18 rect=(182,69,37,44) area1=1006 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=20 rect=(185,72,7,10) dist=86.6 unit=10.0
+[DEBUG_DROP] REASON=area1>=area2 label=34 rect=(405,90,35,44) area1=987 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=40 rect=(678,100,8,8) dist=5.1 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=41 rect=(510,103,9,7) dist=6.3 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=42 rect=(90,133,8,11) dist=67.5 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=43 rect=(97,133,19,28) dist=52.4 unit=11.0
+[DEBUG_DROP] REASON=dist_too_far label=44 rect=(393,148,16,19) dist=103.4 unit=11.0
+[DEBUG_DROP] REASON=dist_too_far label=45 rect=(383,153,4,3) dist=115.6 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=46 rect=(100,167,13,22) dist=43.8 unit=11.0
+[DEBUG_DROP] REASON=dist_too_far label=51 rect=(395,181,4,5) dist=122.7 unit=10.0
+[DEBUG_DROP] REASON=area1>=area2 label=58 rect=(380,206,34,43) area1=979 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=65 rect=(538,220,7,14) dist=126.8 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=67 rect=(441,230,54,7) dist=126.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=68 rect=(457,243,18,12) dist=116.9 unit=12.0
+[DEBUG_DROP] REASON=dist_too_far label=69 rect=(158,269,5,5) dist=40.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=71 rect=(148,318,8,10) dist=79.7 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=72 rect=(160,318,5,5) dist=89.1 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=75 rect=(160,321,9,14) dist=85.4 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=81 rect=(157,345,6,5) dist=70.3 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=84 rect=(151,354,8,9) dist=60.8 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=86 rect=(352,358,9,7) dist=5.3 unit=10.0
+[DEBUG_DROP] REASON=area1>=area2 label=90 rect=(580,392,29,36) area1=559 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=109 rect=(69,446,18,10) dist=7.5 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=115 rect=(75,458,11,10) dist=19.5 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=128 rect=(102,570,27,13) dist=32.9 unit=13.0
+[DEBUG_DROP] REASON=dist_too_far label=129 rect=(565,580,6,7) dist=53.8 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=130 rect=(572,595,7,10) dist=50.5 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=142 rect=(67,655,15,14) dist=10.5 unit=14.0
+[DEBUG_DROP] REASON=dist_too_far label=143 rect=(499,656,11,10) dist=5.2 unit=10.0
+[DEBUG_DROP] REASON=area1>=area2 label=153 rect=(122,782,56,41) area1=1059 area2=548.8
+[DEBUG_DROP] REASON=area1>=area2 label=154 rect=(182,783,31,38) area1=650 area2=548.8
+[DEBUG_DROP] REASON=dist_too_far label=155 rect=(203,783,8,17) dist=117.0 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=168 rect=(254,808,29,12) dist=97.6 unit=12.0
+[DEBUG_DROP] REASON=dist_too_far label=194 rect=(48,880,11,10) dist=5.7 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=205 rect=(222,983,8,7) dist=10.1 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=206 rect=(714,1117,8,10) dist=280.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=207 rect=(617,1123,4,4) dist=290.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=208 rect=(682,1127,4,4) dist=287.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=209 rect=(565,1129,3,4) dist=302.6 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=210 rect=(596,1129,7,8) dist=303.5 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=211 rect=(650,1132,3,5) dist=295.0 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=212 rect=(449,1136,8,4) dist=263.3 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=213 rect=(697,1136,11,9) dist=299.4 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=214 rect=(426,1139,4,4) dist=246.0 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=215 rect=(709,1138,4,4) dist=298.9 unit=10.0
+[DEBUG_DROP] REASON=dist_too_far label=216 rect=(447,1141,10,4) dist=265.6 unit=10.0
+[mask]:   0%|          | 0/63 [00:00<?, ?it/s][DEBUG_MASK] rect=(659,35,47,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=399
+[DEBUG_MASK] rect=(664,45,32,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=206
+[DEBUG_MASK] rect=(658,55,49,9) font_size=12.0 text_size=9 dilate_size=9 cc_area=389
+[mask]:   5%|4         | 3/63 [00:00<00:02, 29.95it/s][DEBUG_MASK] rect=(648,65,70,15) font_size=14.0 text_size=13 dilate_size=9 cc_area=668
+[DEBUG_MASK] rect=(672,78,21,8) font_size=12.0 text_size=8 dilate_size=9 cc_area=144
+[DEBUG_MASK] rect=(649,86,68,14) font_size=13.0 text_size=12 dilate_size=9 cc_area=644
+[DEBUG_MASK] rect=(501,69,23,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=181
+[DEBUG_MASK] rect=(494,78,39,12) font_size=11.0 text_size=10 dilate_size=9 cc_area=311
+[DEBUG_MASK] rect=(486,89,57,13) font_size=11.0 text_size=11 dilate_size=9 cc_area=494
+[DEBUG_MASK] rect=(163,166,12,8) font_size=13.0 text_size=8 dilate_size=9 cc_area=92
+[DEBUG_MASK] rect=(151,178,38,8) font_size=11.0 text_size=8 dilate_size=9 cc_area=242
+[DEBUG_MASK] rect=(150,186,40,13) font_size=12.0 text_size=11 dilate_size=9 cc_area=261
+[DEBUG_MASK] rect=(159,197,22,12) font_size=11.0 text_size=10 dilate_size=9 cc_area=151
+[DEBUG_MASK] rect=(152,211,34,9) font_size=13.03840446472168 text_size=9 dilate_size=9 cc_area=223
+[DEBUG_MASK] rect=(153,217,27,22) font_size=13.0 text_size=13.0 dilate_size=9 cc_area=268
+[DEBUG_MASK] rect=(349,309,14,9) font_size=13.0 text_size=9 dilate_size=9 cc_area=118
+[DEBUG_MASK] rect=(343,322,24,8) font_size=12.041594505310059 text_size=8 dilate_size=9 cc_area=177
+[DEBUG_MASK] rect=(339,332,33,12) font_size=14.0 text_size=10 dilate_size=9 cc_area=251
+[DEBUG_MASK] rect=(340,344,33,13) font_size=14.0 text_size=11 dilate_size=9 cc_area=240
+[DEBUG_MASK] rect=(72,371,16,12) font_size=13.0 text_size=10 dilate_size=9 cc_area=124
+[DEBUG_MASK] rect=(59,384,43,13) font_size=11.0 text_size=11 dilate_size=9 cc_area=297
+[DEBUG_MASK] rect=(69,396,22,13) font_size=11.0 text_size=11 dilate_size=9 cc_area=161
+[DEBUG_MASK] rect=(70,409,19,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=146
+[DEBUG_MASK] rect=(68,420,25,12) font_size=12.0 text_size=10 dilate_size=9 cc_area=184
+[DEBUG_MASK] rect=(67,432,27,13) font_size=12.0 text_size=11 dilate_size=9 cc_area=216
+[DEBUG_MASK] rect=(54,600,38,17) font_size=18.0 text_size=15 dilate_size=11 cc_area=379
+[mask]:  41%|####1     | 26/63 [00:00<00:00, 143.92it/s][DEBUG_MASK] rect=(54,618,38,16) font_size=18.0 text_size=14 dilate_size=11 cc_area=404
+[DEBUG_MASK] rect=(57,634,33,17) font_size=17.0 text_size=15 dilate_size=11 cc_area=372
+[DEBUG_MASK] rect=(647,396,27,12) font_size=14.0 text_size=10 dilate_size=9 cc_area=198
+[DEBUG_MASK] rect=(643,407,32,12) font_size=13.0 text_size=10 dilate_size=9 cc_area=241
+[DEBUG_MASK] rect=(651,419,17,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=141
+[DEBUG_MASK] rect=(635,429,50,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=384
+[DEBUG_MASK] rect=(635,440,49,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=414
+[DEBUG_MASK] rect=(649,449,35,12) font_size=12.0 text_size=10 dilate_size=9 cc_area=155
+[DEBUG_MASK] rect=(623,460,74,15) font_size=11.0 text_size=11.0 dilate_size=9 cc_area=603
+[DEBUG_MASK] rect=(633,472,53,8) font_size=9.0 text_size=8 dilate_size=9 cc_area=377
+[DEBUG_MASK] rect=(631,480,50,16) font_size=11.0 text_size=11.0 dilate_size=9 cc_area=494
+[DEBUG_MASK] rect=(476,623,56,13) font_size=11.0 text_size=11 dilate_size=9 cc_area=424
+[DEBUG_MASK] rect=(488,632,32,20) font_size=13.0 text_size=13.0 dilate_size=9 cc_area=283
+[DEBUG_MASK] rect=(489,646,28,9) font_size=14.0 text_size=9 dilate_size=9 cc_area=234
+[DEBUG_MASK] rect=(694,756,19,8) font_size=12.0 text_size=8 dilate_size=9 cc_area=136
+[DEBUG_MASK] rect=(690,764,29,14) font_size=14.0 text_size=12 dilate_size=9 cc_area=229
+[DEBUG_MASK] rect=(693,778,18,8) font_size=12.0 text_size=8 dilate_size=9 cc_area=112
+[DEBUG_MASK] rect=(688,782,32,16) font_size=12.0 text_size=12.0 dilate_size=9 cc_area=259
+[DEBUG_MASK] rect=(683,798,43,12) font_size=11.0 text_size=10 dilate_size=9 cc_area=335
+[DEBUG_MASK] rect=(683,809,43,12) font_size=13.0 text_size=10 dilate_size=9 cc_area=348
+[DEBUG_MASK] rect=(691,821,26,9) font_size=11.0 text_size=9 dilate_size=9 cc_area=209
+[DEBUG_MASK] rect=(680,830,50,14) font_size=11.0 text_size=11.0 dilate_size=9 cc_area=375
+[DEBUG_MASK] rect=(543,775,26,13) font_size=12.0 text_size=11 dilate_size=9 cc_area=192
+[DEBUG_MASK] rect=(521,806,32,13) font_size=13.0 text_size=11 dilate_size=9 cc_area=272
+[DEBUG_MASK] rect=(522,819,30,9) font_size=13.0 text_size=9 dilate_size=9 cc_area=245
+[DEBUG_MASK] rect=(205,909,41,17) font_size=16.0 text_size=15 dilate_size=11 cc_area=356
+[DEBUG_MASK] rect=(200,925,46,16) font_size=16.0 text_size=14 dilate_size=11 cc_area=453
+[DEBUG_MASK] rect=(191,943,69,18) font_size=16.0 text_size=16 dilate_size=11 cc_area=692
+[mask]:  86%|########5 | 54/63 [00:00<00:00, 204.83it/s][DEBUG_MASK] rect=(202,960,43,23) font_size=18.0 text_size=18.0 dilate_size=11 cc_area=465
+[DEBUG_MASK] rect=(41,779,23,14) font_size=15.0 text_size=12 dilate_size=9 cc_area=190
+[DEBUG_MASK] rect=(38,794,29,12) font_size=13.0 text_size=10 dilate_size=9 cc_area=219
+[DEBUG_MASK] rect=(29,806,48,13) font_size=10.0 text_size=10.0 dilate_size=9 cc_area=333
+[DEBUG_MASK] rect=(35,818,37,13) font_size=14.0 text_size=11 dilate_size=9 cc_area=272
+[DEBUG_MASK] rect=(38,834,30,8) font_size=13.0 text_size=8 dilate_size=9 cc_area=240
+[DEBUG_MASK] rect=(32,843,43,12) font_size=12.0 text_size=10 dilate_size=9 cc_area=292
+[DEBUG_MASK] rect=(41,856,24,9) font_size=11.045360565185547 text_size=9 dilate_size=9 cc_area=167
+[DEBUG_MASK] rect=(38,870,30,9) font_size=14.142135620117188 text_size=9 dilate_size=9 cc_area=207
+[mask]: 100%|##########| 63/63 [00:00<00:00, 190.62it/s]
+[render]:   0%|          | 0/13 [00:00<?, ?it/s][render]:   8%|7         | 1/13 [00:00<00:02,  4.79it/s][render]:  23%|##3       | 3/13 [00:00<00:00, 10.82it/s][render]:  46%|####6     | 6/13 [00:00<00:00, 17.04it/s][render]:  62%|######1   | 8/13 [00:00<00:00, 17.83it/s][render]:  92%|#########2| 12/13 [00:00<00:00, 21.70it/s][render]: 100%|##########| 13/13 [00:00<00:00, 18.40it/s]
+DONE

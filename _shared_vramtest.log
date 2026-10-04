@@ -1,0 +1,120 @@
+[31m‚ö†Ô∏è  Warning: You are using the experimental Python version of this project.[0m
+[33mThis version is unstable and may break frequently. Please switch to the Rust rewrite for reliability! The rust version is an early release so it might still have some issues. https://github.com/frederik-uni/manga-image-translator-rust[0m
+[shared] Namespace(verbose=True, attempts=0, ignore_errors=False, model_dir=None, use_gpu=True, use_gpu_limited=False, font_path='', pre_dict=None, post_dict='dict_post_esp.txt', kernel_size=3, context_size=0, batch_size=1, batch_concurrent=False, disable_memory_optimization=False, mode='shared', host='127.0.0.1', port=5998, nonce='None', report=None, models_ttl=100)
+[shared] Running in shared mode
+[shared] Log file created: C:\Herramientas\manga-image-translator\result\log_20260923003210.txt
+INFO:     Started server process [18324]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:5998 (Press CTRL+C to quit)
+[shared] Running text detection
+[DefaultDetector] Detection resolution: 1280x1536
+[shared] Running ocr
+[Model48pxOCR] prob: 0.8395726680755615 I'll fg: (23, 33, 19) bg: (23, 33, 19)
+[Model48pxOCR] prob: 0.8394449949264526 I'll fg: (5, 10, 2) bg: (5, 10, 2)
+[Model48pxOCR] prob: 0.7394774556159973 Oh fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9983878135681152 But fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8810838460922241 UH. fg: (4, 3, 1) bg: (4, 3, 1)
+[Model48pxOCR] prob: 0.9785199761390686 we'll fg: (0, 1, 0) bg: (0, 1, 0)
+[Model48pxOCR] prob: 0.698736846446991 UM fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.998206615447998 TO fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.7193064093589783 Miu fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9968420267105103 Miu fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.3007277250289917 yeah.. fg: (0, 1, 2) bg: (0, 1, 2)
+[Model48pxOCR] prob: 0.9987866878509521 HM? fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9983007907867432 BE fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9989576935768127 and fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9199629426002502 date. fg: (0, 3, 0) bg: (0, 3, 0)
+[Model48pxOCR] prob: 0.9995446801185608 ARE fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9983534812927246 God! fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9763627052307129 MIU? fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.5311068892478943 HUH. fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8734105825424194 YOU fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9986196756362915 have fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9099898934364319 since fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.4825962781906128 right. fg: (0, 3, 1) bg: (0, 3, 1)
+[Model48pxOCR] prob: 0.9827993512153625 Aah.. fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9319503307342529 we'll fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9990918636322021 Dear fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.7954978346824646 yeah fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9989216923713684 WHAT fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9820476174354553 IS IT? fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9725024700164795 DATE, fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9943351745605469 MUST fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.6426700949668884 AAH, fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8507076501846313 fine fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9755083918571472 Sora. fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9231715798377991 Guess fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9940656423568726 that's fg: (0, 3, 0) bg: (0, 3, 0)
+[Model48pxOCR] prob: 0.7252218127250671 Jeez fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.5481395125389099 here, I fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9929587841033936 go on a fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.997970700263977 ONCE fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9997057318687439 THIS fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9988746643066406 you're fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.999260425567627 become fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9830484986305237 OUT OF fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9781129956245422 YOU, fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9864785671234131 Miu, and fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9359551072120667 I'M SO fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.5564300417900085 we'll Be fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9993683695793152 WE GET fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9987836480140686 become fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9987221360206604 ORATIVE fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8912476301193237 SALON... fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9044478535652161 noBody's fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9992712736129761 LOOKING fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9989046454429626 BOTH OF fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8919798135757446 hopeless, fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.998878002166748 FORWARD fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9986135363578796 BROTHER fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.999476969242096 MATCHING fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8019794225692749 ÖÖ fg: (14, 27, 6) bg: (14, 27, 6)
+[Model48pxOCR] prob: 0.9972060918807983 AND SISTER, fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.8902559280395508 BEAUTIFUL... fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.996936023235321 JEALOUS! fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9593209624290466 COMMEM- fg: (0, 0, 0) bg: (0, 0, 0)
+[Model48pxOCR] prob: 0.9895733594894409 TOMORROW'S fg: (0, 0, 0) bg: (0, 0, 0)
+[shared] Removed unpaired bracket from "I'll become Miu, and we'll go on a date."
+[shared] Removed unpaired bracket from "I'll become Miu and we'll have"
+[shared] Removed unpaired bracket from "Oh yeah that's right."
+[shared] Removed unpaired bracket from "But since noBody's here, I Guess we'll Be fine yeah.."
+[shared] Removed unpaired bracket from "YOU MUST BE LOOKING FORWARD TO TOMORROW'S COMMEM- ORATIVE"
+[shared] Removed unpaired bracket from "AAH, I'M SO JEALOUS!"
+[shared] Removed unpaired bracket from "Jeez you're hopeless, Sora."
+[shared] Filtered out: ÖÖ
+[shared] Reason: Text is not considered valuable.
+[shared] No pre-translation replacements made.
+[shared] Running text translation
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/512 [00:00<?, ?it/s]Loading weights: 100%|##########| 512/512 [00:00<00:00, 10922.89it/s]
+[NLLBTranslator] Translating into Spanish
+[NLLBTranslator] 0: BOTH OF YOU, BROTHER AND SISTER, ARE BEAUTIFUL... => Ambos de ustedes, hermano y hermana, son hermosos...
+[NLLBTranslator] 1: AAH, IM SO JEALOUS! => °Aah, yo soy tan celoso!
+[NLLBTranslator] 2: Ill become Miu, and well go on a date. => Me convertirÈ en Miu, y bien ir a una cita.
+[NLLBTranslator] 3: Oh yeah thats right. => SÌ, es cierto.
+[NLLBTranslator] 4: Ill become Miu and well have => Me convertirÈ en Miu y bien tengo
+[NLLBTranslator] 5: Miu => Miu
+[NLLBTranslator] 6: Aah.. Dear God! => °Oh, Dios mÌo!
+[NLLBTranslator] 7: YOU MUST BE LOOKING FORWARD TO TOMORROWS COMMEM- ORATIVE => Debes estar mirando hacia adelante para maÒana COMMEM- ORATIVO
+[NLLBTranslator] 8: MATCHING DATE, HUH. => La fecha coincide, HH.
+[NLLBTranslator] 9: UM MIU? UH. ONCE WE GET OUT OF THIS SALON... => Una vez que salgamos de este salÛn...
+[NLLBTranslator] 10: HM? => øQuÈ es eso?
+[NLLBTranslator] 11: WHAT IS IT? => øQuÈ es eso?
+[NLLBTranslator] 12: Jeez youre hopeless, Sora. => Dios mÌo, est·s desesperada, Sora.
+[NLLBTranslator] 13: But since noBodys here, I Guess well Be fine yeah.. => Pero ya que no hay nadie aquÌ, supongo que estar· bien.
+ERROR: [shared] Invalid dictionary entry at line 15: (?i)voy a agarrar algunos tejidos voy a buscar unos paÒuelos
+ERROR: [shared] Invalid dictionary entry at line 16: (?i)algunos tejidos unos paÒuelos
+[shared] No post-translation replacements made.
+[shared] Starting post-translation check...
+[shared] Starting page-level target language check with 14 regions...
+[shared] Page-level target language ratio check passed
+[shared] All translation regions passed post-translation check.
+[shared] Filtered out: Miu
+[shared] Reason: Translation identical to original
+[shared] Running mask refinement
+[mask]:   0%|          | 0/63 [00:00<?, ?it/s][mask]:  10%|9         | 6/63 [00:00<00:01, 47.03it/s][mask]:  22%|##2       | 14/63 [00:00<00:00, 57.67it/s][mask]:  35%|###4      | 22/63 [00:00<00:00, 63.52it/s][mask]:  46%|####6     | 29/63 [00:00<00:00, 63.11it/s][mask]:  57%|#####7    | 36/63 [00:00<00:00, 60.41it/s][mask]:  70%|######9   | 44/63 [00:00<00:00, 64.16it/s][mask]:  81%|########  | 51/63 [00:00<00:00, 64.02it/s][mask]:  92%|#########2| 58/63 [00:00<00:00, 60.50it/s][mask]: 100%|##########| 63/63 [00:01<00:00, 60.78it/s]
+[LamaMPEInpainter] Inpainting resolution: 816x1152
+[shared] Running rendering
+[render]:   0%|          | 0/13 [00:00<?, ?it/s][render]:   8%|7         | 1/13 [00:00<00:02,  4.33it/s][render]:  31%|###       | 4/13 [00:00<00:00, 12.79it/s][render]:  54%|#####3    | 7/13 [00:00<00:00, 16.31it/s][render]:  77%|#######6  | 10/13 [00:00<00:00, 20.10it/s][render]: 100%|##########| 13/13 [00:00<00:00, 21.18it/s][render]: 100%|##########| 13/13 [00:00<00:00, 17.75it/s]
+INFO:     127.0.0.1:63304 - "POST /simple_execute/translate HTTP/1.1" 200 OK

@@ -1,0 +1,11 @@
+[31m⚠️  Warning: You are using the experimental Python version of this project.[0m
+[33mThis version is unstable and may break frequently. Please switch to the Rust rewrite for reliability! The rust version is an early release so it might still have some issues. https://github.com/frederik-uni/manga-image-translator-rust[0m
+[shared] Namespace(verbose=True, attempts=0, ignore_errors=False, model_dir=None, use_gpu=False, use_gpu_limited=False, font_path='', pre_dict=None, post_dict=None, kernel_size=3, context_size=0, batch_size=1, batch_concurrent=False, disable_memory_optimization=False, mode='shared', host='127.0.0.1', port=5998, nonce=None, report=None, models_ttl=0)
+[shared] Running in shared mode
+[shared] Log file created: C:\Herramientas\manga-image-translator\result\log_20260922222545.txt
+INFO:     Started server process [16056]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:5998 (Press CTRL+C to quit)
+INFO:     127.0.0.1:61272 - "POST /simple_execute/translate HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:63084 - "POST /simple_execute/translate HTTP/1.1" 401 Unauthorized

@@ -1,0 +1,8 @@
+# Glosario de nombres de personajes (shared_client._aplicar_nombres), aplicado
+# al texto original ANTES de mandarlo a Yandex/MyMemory. Formato por línea:
+# origen<TAB>destino. Las variantes de OCR de un mismo nombre van en su
+# propia línea. Solo nombres confirmados (fuente oficial/wiki), no adivinados.
+
+# Tensei Shitara Joban de Shinu Naka Boss Datta: protagonista = Ashnold.
+アッシュノルド	Ashnold
+アッションルド	Ashnold

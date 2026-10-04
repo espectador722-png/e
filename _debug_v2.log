@@ -1,0 +1,9 @@
+[31m‚ö†Ô∏è  Warning: You are using the experimental Python version of this project.[0m
+[33mThis version is unstable and may break frequently. Please switch to the Rust rewrite for reliability! The rust version is an early release so it might still have some issues. https://github.com/frederik-uni/manga-image-translator-rust[0m
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/512 [00:00<?, ?it/s]Loading weights: 100%|##########| 512/512 [00:00<00:00, 8482.18it/s]
+[mask]:   0%|          | 0/63 [00:00<?, ?it/s][mask]:  10%|9         | 6/63 [00:00<00:01, 47.32it/s][mask]:  21%|##        | 13/63 [00:00<00:00, 58.17it/s][mask]:  30%|###       | 19/63 [00:00<00:00, 56.19it/s][mask]:  41%|####1     | 26/63 [00:00<00:00, 58.09it/s][mask]:  51%|#####     | 32/63 [00:00<00:00, 58.26it/s][mask]:  60%|######    | 38/63 [00:00<00:00, 58.56it/s][mask]:  70%|######9   | 44/63 [00:00<00:00, 55.36it/s][mask]:  79%|#######9  | 50/63 [00:00<00:00, 52.80it/s][mask]:  89%|########8 | 56/63 [00:01<00:00, 38.45it/s][mask]:  98%|#########8| 62/63 [00:01<00:00, 43.18it/s][mask]: 100%|##########| 63/63 [00:01<00:00, 49.47it/s]
+[render]:   0%|          | 0/13 [00:00<?, ?it/s][render]:   8%|7         | 1/13 [00:00<00:02,  4.15it/s][render]:  31%|###       | 4/13 [00:00<00:00, 12.44it/s][render]:  54%|#####3    | 7/13 [00:00<00:00, 14.74it/s][render]:  77%|#######6  | 10/13 [00:00<00:00, 16.97it/s][render]: 100%|##########| 13/13 [00:00<00:00, 18.56it/s][render]: 100%|##########| 13/13 [00:00<00:00, 15.86it/s]
+[DEBUG_REGION] translation='Me convertirÈ en Miu, y bien ir' min_rect=[[[278, 302], [348, 302], [348, 428], [278, 428]]]
+[DEBUG_REGION] translation='Me convertirÈ en Miu y bien tengo' min_rect=[[[107, 687], [185, 687], [185, 823], [107, 823]]]
+DONE
