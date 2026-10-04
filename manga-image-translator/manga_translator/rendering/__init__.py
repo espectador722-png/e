@@ -241,8 +241,45 @@ def _open_space_box(img: np.ndarray, region: 'TextBlock'):
     x1, y1, x2, y2 = max(0, x1), max(0, y1), min(W, x2), min(H, y2)
     if x2 <= x1 or y2 <= y1 or ink[y1:y2, x1:x2].mean() > _OPEN_SPACE_MAX_INK * 3:
         return None  # text sits over the art, not over paper
-    grow = [True] * 4  # left, top, right, bottom
     max_area = (x2 - x1) * (y2 - y1) * _OPEN_SPACE_MAX_GROWTH
+    rect = _grow_blank_rect(ink, x1, y1, x2, y2, max_area)
+    # Grown from a tall Japanese column, the top and bottom edges hit the
+    # outline first and the rectangle stays a column: Spanish wrapped into it
+    # one word per line at the minimum font ("Seres humanos…", "La
+    # estructura física" in round balloons). Also grow from a square seed at
+    # the text's centre and keep whichever blank rectangle is bigger.
+    lado = min(x2 - x1, y2 - y1)
+    if max(x2 - x1, y2 - y1) > lado * _OPEN_SPACE_SEED_RATIO:
+        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+        semilla = _grow_blank_rect(ink, cx - lado // 2, cy - lado // 2,
+                                   cx - lado // 2 + lado, cy - lado // 2 + lado, max_area)
+        if (semilla[2] - semilla[0]) * (semilla[3] - semilla[1]) > (rect[2] - rect[0]) * (rect[3] - rect[1]):
+            rect = semilla
+    x1, y1, x2, y2 = rect
+    if (x2 - x1) * (y2 - y1) > H * W * _FLOOD_MAX_PAGE_FRACTION:
+        return None
+    # The renderer insets every balloon box by 12% per side so text clears the
+    # drawn outline. This rectangle is already all blank paper, inside the
+    # outline - pre-grow it by that inset so the net render box is exactly
+    # the blank area ("qué está pasando…?" got 86px of a 114px blank space).
+    pad_x = int((x2 - x1) * 0.12 / 0.76)
+    pad_y = int((y2 - y1) * 0.12 / 0.76)
+    x1, y1 = max(0, x1 - pad_x), max(0, y1 - pad_y)
+    x2, y2 = min(W, x2 + pad_x), min(H, y2 + pad_y)
+    return np.full((y2 - y1, x2 - x1), 255, np.uint8), (x1, y1, x2, y2)
+
+
+# A text box this many times taller than wide (or wider than tall) is also
+# grown from a square seed (see _open_space_box).
+_OPEN_SPACE_SEED_RATIO = 1.5
+
+
+def _grow_blank_rect(ink: np.ndarray, x1: int, y1: int, x2: int, y2: int, max_area: int):
+    """Grow (x1, y1, x2, y2) one pixel per side at a time while each new strip
+    is still blank paper; a side stops for good at the first inked strip."""
+    H, W = ink.shape
+    x1, y1, x2, y2 = max(0, x1), max(0, y1), min(W, x2), min(H, y2)
+    grow = [True] * 4  # left, top, right, bottom
     while any(grow) and (x2 - x1) * (y2 - y1) < max_area:
         if grow[0]:
             grow[0] = x1 > 0 and ink[y1:y2, x1 - 1].mean() <= _OPEN_SPACE_MAX_INK
@@ -256,17 +293,7 @@ def _open_space_box(img: np.ndarray, region: 'TextBlock'):
         if grow[3]:
             grow[3] = y2 < H and ink[y2, x1:x2].mean() <= _OPEN_SPACE_MAX_INK
             y2 += grow[3]
-    if (x2 - x1) * (y2 - y1) > H * W * _FLOOD_MAX_PAGE_FRACTION:
-        return None
-    # The renderer insets every balloon box by 12% per side so text clears the
-    # drawn outline. This rectangle is already all blank paper, inside the
-    # outline - pre-grow it by that inset so the net render box is exactly
-    # the blank area ("qué está pasando…?" got 86px of a 114px blank space).
-    pad_x = int((x2 - x1) * 0.12 / 0.76)
-    pad_y = int((y2 - y1) * 0.12 / 0.76)
-    x1, y1 = max(0, x1 - pad_x), max(0, y1 - pad_y)
-    x2, y2 = min(W, x2 + pad_x), min(H, y2 + pad_y)
-    return np.full((y2 - y1, x2 - x1), 255, np.uint8), (x1, y1, x2, y2)
+    return x1, y1, x2, y2
 
 
 def _split_shared_balloon(mask, box, region):
@@ -306,6 +333,31 @@ def _split_shared_balloon(mask, box, region):
             else:
                 mask[:, :cut] = 0
     return mask, box
+
+
+# The colour classifier (shared_client._clasificar_bubble_heuristica) samples
+# only the text box: inpainting smudges left there made white balloons count
+# as "no balloon", and their text was sized to the original Japanese column
+# and pinned to its top-left corner - tiny text at the top of a big balloon
+# ("Pero me sorprendieron los medicamentos…"). A flood fill that is a closed,
+# convex paper shape (leaks are already rejected) covering most of the text
+# box is a balloon whatever the colour sample said.
+_CLOSED_BALLOON_MIN_COVER = 0.7
+
+
+def _closed_balloon_behind(img: np.ndarray, region: 'TextBlock') -> bool:
+    fill = _floodfill_balloon(img, region)
+    if fill is None:
+        return False
+    mask, (bx1, by1, bx2, by2) = fill
+    x1, y1, x2, y2 = [int(v) for v in region.xyxy]
+    mx, my = (x2 - x1) * 15 // 100, (y2 - y1) * 15 // 100
+    x1, y1, x2, y2 = x1 + mx, y1 + my, x2 - mx, y2 - my
+    if x2 <= x1 or y2 <= y1:
+        return False
+    full = np.zeros(img.shape[:2], np.uint8)
+    full[by1:by2, bx1:bx2] = mask > 0
+    return full[y1:y2, x1:x2].mean() >= _CLOSED_BALLOON_MIN_COVER
 
 
 def _invalidate_cached(region: 'TextBlock') -> None:
@@ -830,6 +882,9 @@ def resize_regions_to_font_size(img: np.ndarray, text_regions: List['TextBlock']
         # trust the mask; it defaults to True (trust it) when absent, since
         # most callers of this renderer are real dialogue in real balloons.
         es_bubble_real = getattr(region, "_es_bubble_real", True)
+        if not es_bubble_real and _closed_balloon_behind(img, region):
+            # render() reads the same flag to centre the text block.
+            region._es_bubble_real = es_bubble_real = True
         language = getattr(region, "target_lang", "en_US")
         min_font_size = max(1, int(target_font_size * 0.6))
 
@@ -1016,8 +1071,10 @@ def resize_regions_to_font_size(img: np.ndarray, text_regions: List['TextBlock']
             # (real case: page 083, 151x271 box -> font 21, unreadable).
             # Wrap it at a roughly square block of the same area instead,
             # centered on the original text (dst is widened below to match).
+            # Also for a real balloon whose shape couldn't be segmented: it
+            # used to wrap at the column's width too (only free text widened).
             widened_width = None
-            if region.horizontal and not es_bubble_real and alto_bubble > ancho_bubble * _FREE_TEXT_TALL_RATIO:
+            if region.horizontal and balloon_box is None and alto_bubble > ancho_bubble * _FREE_TEXT_TALL_RATIO:
                 square = (ancho_bubble * alto_bubble) ** 0.5 * _FREE_TEXT_WIDEN
                 square = min(square, img.shape[1] * _FREE_TEXT_MAX_PAGE_WIDTH)
                 if square > fallback_width:
