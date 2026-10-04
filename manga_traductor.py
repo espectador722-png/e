@@ -959,24 +959,23 @@ def _run_batch_job_simple(job_key: str) -> None:
     _guardar_cola_persistida()
 
 
-def _procesar_pagina_llm_con_fallback(filename: str, cache_file: str, pkl_path: str, ruta: str) -> None:
-    """Fase 2 (consenso) para una página, con el mismo fallback que ya
-    existía: si el consenso falla, renderiza directo sin corrección en vez
-    de bloquear el manga entero por un fallo puntual de un motor. Extraída
-    de _run_batch_job para poder correrla en un hilo aparte (ver
-    _correr_con_cancelacion) sin duplicar esta lógica."""
+def _procesar_pagina_fase2(filename: str, cache_file: str, ruta: str) -> None:
+    """Fase 2 (traducción + render final) de una página. Levanta excepción si
+    no se pudo generar la página traducida.
+
+    Antes, si fase 2 fallaba se renderizaba el pickle de fase 1 tal cual
+    ("render NLLB crudo"). Pero fase 1 corre con el traductor 'original'
+    (ver _config_fase1): el pickle trae el texto SIN traducir, así que ese
+    respaldo dibujaba el inglés/japonés de vuelta sobre el globo limpio, lo
+    guardaba como página terminada y nunca se reintentaba. Ahora la página
+    queda como fallida y su pickle se conserva: el reintento automático de
+    fallidas solo repite fase 2 (fase 1 se saltea si el .pkl existe), y
+    mientras tanto el lector muestra la página original."""
     from routes.manga_traductor_llm import procesar_pagina_llm
-    try:
-        procesar_pagina_llm(cache_file, ruta)
-    except Exception as e:
-        logger.warning("Fase2 (consenso) falló para %s, se deja el render NLLB crudo: %s", filename, e)
-        try:
-            _fase1_render_directo(pkl_path, cache_file)
-        except Exception as e2:
-            logger.warning("Fallback de render directo también falló para %s: %s", filename, e2)
-        finally:
-            if os.path.isfile(pkl_path):
-                os.remove(pkl_path)
+    if not procesar_pagina_llm(cache_file, ruta):
+        raise RuntimeError("no existe el pickle de fase 1")
+    if not os.path.isfile(cache_file):
+        raise RuntimeError("fase 2 no generó la página traducida")
 
 
 def _run_batch_job(job_key: str) -> None:
@@ -986,7 +985,7 @@ def _run_batch_job(job_key: str) -> None:
     sin LLM/Ollama) recién después de que fase 1 terminó por completo. Ya no
     hay que gestionar VRAM entre fases (el consenso no usa GPU), pero se
     mantiene la separación en 2 fases por robustez operativa (reintentos
-    independientes, progreso por fase, fallback de render directo). Si el
+    independientes, progreso por fase). Si el
     server 'shared' no está vivo, cae al camino de una sola fase (sin
     corrección)."""
     if not _shared_server_vivo():
@@ -1009,12 +1008,21 @@ def _run_batch_job(job_key: str) -> None:
 
     def _procesar_una(item):
         filename, cache_file, pkl_path = item
-        _procesar_pagina_llm_con_fallback(filename, cache_file, pkl_path, ruta)
+        try:
+            _procesar_pagina_fase2(filename, cache_file, ruta)
+            error = None
+        except Exception as e:
+            error = str(e)
+            logger.warning("Fase2 falló para %s, queda como fallida para reintentar: %s", filename, e)
         with _JOBS_LOCK:
-            job["completadas_llm"] += 1
+            if error is None:
+                job["completadas_llm"] += 1
+            else:
+                job["fallidas"].append({"archivo": filename, "motivo": f"fase 2: {error}"[:500]})
             if filename in job["paginas_en_curso"]:
                 job["paginas_en_curso"].remove(filename)
-        _actualizar_progreso_metadata_llm(ruta, categoria, manga_name)
+        if error is None:
+            _actualizar_progreso_metadata_llm(ruta, categoria, manga_name)
 
     pool = ThreadPoolExecutor(max_workers=_FASE2_WORKERS)
     futuros = {}
@@ -1078,7 +1086,7 @@ def _run_batch_job(job_key: str) -> None:
                     futuro.result()
                 except Exception as e:
                     filename = futuros[futuro][0]
-                    logger.warning("Fase2 (consenso) falló para %s pese al fallback interno: %s", filename, e)
+                    logger.warning("Fase2 falló para %s (error inesperado): %s", filename, e)
                 _guardar_cola_persistida()
 
     with _JOBS_LOCK:
@@ -1106,22 +1114,6 @@ def _escribir_autoria_md(ruta_manga: str) -> None:
     md_path = os.path.join(ruta_manga, AUTORIA_MD_FILE)
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(f"# Autoría\n\n{AUTORIA_TEXTO}\n")
-
-
-def _fase1_render_directo(pkl_path: str, cache_file: str) -> None:
-    """Renderiza el pickle intermedio de fase 1 SIN pasar por el consenso (fallback
-    cuando la fase 2 falla para una página puntual)."""
-    proc = subprocess.run(
-        [Config.TRADUCTOR_PYTHON, Config.TRADUCTOR_SHARED_CLIENT, "render-from", pkl_path, cache_file],
-        cwd=Config.TRADUCTOR_DIR,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=Config.TRADUCTOR_TIMEOUT,
-    )
-    if proc.returncode != 0 or not os.path.isfile(cache_file):
-        raise RuntimeError(f"render-from falló (code {proc.returncode}): {proc.stderr[-2000:]}")
 
 
 def _actualizar_progreso_metadata_llm(ruta_manga: str, categoria: str, manga_name: str) -> None:

@@ -804,17 +804,34 @@ def _nllb_via_shared(texts: list[str], target_lang: str = "ESP") -> list[str] | 
         return resultado if len(resultado) == len(texts) else None
 
 
+class SinTraductorDisponible(RuntimeError):
+    """Yandex, MyMemory y NLLB fallaron para alguna línea de diálogo."""
+
+
 def _completar_con_nllb(text_regions, faltan, resultados) -> None:
     """Lines where the web chain returned nothing (not merely an unchanged
     text: Yandex echoes interjections like "AAH" as-is, and sending those to
     NLLB made every page wait on the busy 'shared' server) go to NLLB in one
     batch, filtered by _es_alucinacion as before. Known SFX are not sent:
-    they skip translation. Unresolved lines keep the original."""
+    they skip translation.
+
+    Si NLLB tampoco responde (server 'shared' caído, u ocupado con fase 1
+    más de _NLLB_BUSY_WAIT_SECONDS), se levanta SinTraductorDisponible. Antes
+    esas líneas se quedaban con el texto original y la página se dibujaba y
+    se daba por terminada: así quedaban globos sin traducir que nunca se
+    reintentaban. Ahora la página falla, el llamador (manga_traductor.py) la
+    marca como fallida conservando el pickle de fase 1, y el reintento
+    automático repite solo esta fase cuando los motores vuelvan."""
     faltan = [i for i in faltan if not _es_sfx_conocida(text_regions[i].text)]
     if not faltan:
         return
     partes = [_separar_simbolos(text_regions[i].text) for i in faltan]
-    nllb = _nllb_via_shared([core for core, _ in partes]) or []
+    nllb = _nllb_via_shared([core for core, _ in partes])
+    if nllb is None:
+        ejemplos = "; ".join(repr(text_regions[i].text[:40]) for i in faltan[:3])
+        raise SinTraductorDisponible(
+            f"Yandex, MyMemory y NLLB no tradujeron {len(faltan)} línea(s) de diálogo "
+            f"(ej.: {ejemplos})")
     for i, (core, simbolos), traduccion in zip(faltan, partes, nllb):
         resultados[i] = _pegar_simbolos(_resolver_traduccion_dialogo(core, traduccion), simbolos)
 
@@ -1195,6 +1212,29 @@ def _sin_basura_cjk(regions):
     return [r for r in regions if not es_basura(r)]
 
 
+def regiones_sin_traducir(regions, indices_dialogo) -> list[str]:
+    """Textos que fase 2 va a dejar en el idioma original porque no se
+    clasificaron como diálogo (ni globo por color ni forma de oración) y no
+    son SFX conocidas ni gemidos. Solo para diagnóstico: si en el log
+    aparecen diálogos reales acá, el problema está en la clasificación
+    (_clasificar_bubble_heuristica / _parece_dialogo_real), no en los
+    traductores."""
+    dialogo = set(indices_dialogo)
+    salida = []
+    for i, r in enumerate(regions):
+        texto = (r.text or "").strip()
+        if i in dialogo or not texto or _es_sfx_conocida(texto) or _es_solo_gemido(texto):
+            continue
+        if any(c.isalpha() for c in texto):
+            salida.append(texto)
+    return salida
+
+
+def avisar_sin_traducir(regions, indices_dialogo) -> None:
+    for texto in regiones_sin_traducir(regions, indices_dialogo):
+        print(f"[fase2] queda sin traducir (no parece diálogo): {texto[:80]!r}", file=sys.stderr)
+
+
 def fase2_preparar(img_inpainted, text_regions):
     """Shared fase-2 front half (worker_server, llm-process and the regression
     harness): one region per balloon, then balloon/dialogue classification.
@@ -1337,6 +1377,7 @@ def _modo_llm_process(argv: list[str]) -> int:
     # documentado en ese mismo comentario: caso "HEY!" -> Yandex="¡OYE!"
     # descartado). Se saca esa votación: si Yandex responde, se usa directo;
     # solo cae a NLLB si Yandex falla o está en cooldown por rate-limit.
+    avisar_sin_traducir(text_regions, indices_dialogo)
     resultados = [region.text for region in text_regions]
     faltan = _traducir_pagina(text_regions, indices_dialogo, resultados, manga_dir)
     _completar_con_nllb(text_regions, faltan, resultados)
