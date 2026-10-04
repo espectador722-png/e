@@ -1,0 +1,4 @@
+Cortos: 712 carpetas totales
+  con >=100 pag (mal clasificados): 0
+Largos: 219 carpetas totales
+  con <100 pag (candidatos a mover a cortos, no verificado si son series): 0
