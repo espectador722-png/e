@@ -30,6 +30,57 @@ _SMALL_PASS_OVERLAP = 0.3
 _SMALL_PASS_GROW = 1.10
 
 
+def _caja(q) -> Tuple[int, int, int, int]:
+    return cv2.boundingRect(q.pts.astype(np.int32))
+
+
+def _interseccion(a, b) -> int:
+    iw = min(a[0] + a[2], b[0] + b[2]) - max(a[0], b[0])
+    ih = min(a[1] + a[3], b[1] + b[3]) - max(a[1], b[1])
+    return iw * ih if iw > 0 and ih > 0 else 0
+
+
+def combinar_pasada_chica(textlines: list, small_lines: list) -> Tuple[list, int]:
+    """Suma a `textlines` (pasada grande) solo el texto que la pasada chica
+    encontró y la grande no. Devuelve (textlines, cantidad agregada/reemplazada).
+
+    Bug corregido: antes una línea de la pasada chica se agregaba si NINGUNA
+    línea existente, de a una, la solapaba en más del 30 % de su área. Pero a
+    1024 varias columnas verticales vecinas salen como UNA caja ancha: cada
+    columna sola cubre menos del 30 %, así que la caja se agregaba igual
+    encima de las columnas ya detectadas. Resultado: dos textos para el
+    mismo lugar (traducciones encimadas, globos "partidos" o "juntados").
+    Ahora se mide el solapamiento TOTAL, y una caja que contiene casi entera
+    a una línea existente tampoco se agrega como nueva."""
+    textlines = list(textlines)
+    boxes = [_caja(q) for q in textlines]
+    added = 0
+    for q in small_lines:
+        x, y, w, h = caja = _caja(q)
+        if w * h <= 0:
+            continue
+        overlapping = [(i, _interseccion(caja, b), b[2] * b[3]) for i, b in enumerate(boxes)]
+        overlapping = [o for o in overlapping if o[1] > 0]
+        total = sum(inter for _, inter, _ in overlapping)
+        contiene_existente = any(inter >= 0.5 * area for _, inter, area in overlapping)
+        if not overlapping or (total <= _SMALL_PASS_OVERLAP * w * h and not contiene_existente):
+            textlines.append(q)
+            boxes.append(caja)
+            added += 1
+        elif len(overlapping) == 1:
+            # The large pass found the line but cut it short (e.g. dropped the
+            # trailing hearts of a big moan), so OCR rejects the truncated crop.
+            # When the small pass box fully contains it and is clearly larger,
+            # prefer the small pass quad.
+            i, inter, area = overlapping[0]
+            bx, by, bw, bh = boxes[i]
+            if inter >= 0.8 * area and max(w, h) >= _SMALL_PASS_GROW * max(bw, bh):
+                textlines[i] = q
+                boxes[i] = caja
+                added += 1
+    return textlines, added
+
+
 class DefaultDetector(OfflineDetector):
     _MODEL_MAPPING = {
         'model': {
@@ -70,33 +121,7 @@ class DefaultDetector(OfflineDetector):
         # found them - while 1024 alone loses small text 2048 finds (p.18). Run a
         # second, smaller pass and keep only the text lines the first one lacks.
         small_lines, small_mask, _ = await self._infer_single(image, _SMALL_PASS_SIZE, text_threshold, box_threshold, unclip_ratio, verbose)
-        boxes = [cv2.boundingRect(q.pts.astype(np.int32)) for q in textlines]
-        added = 0
-        for q in small_lines:
-            x, y, w, h = cv2.boundingRect(q.pts.astype(np.int32))
-            if w * h <= 0:
-                continue
-            overlapping = []
-            for i, (bx, by, bw, bh) in enumerate(boxes):
-                iw = min(x + w, bx + bw) - max(x, bx)
-                ih = min(y + h, by + bh) - max(y, by)
-                if iw > 0 and ih > 0:
-                    overlapping.append((i, iw * ih, bw * bh))
-            if not any(inter > _SMALL_PASS_OVERLAP * w * h for _, inter, _ in overlapping):
-                textlines.append(q)
-                boxes.append((x, y, w, h))
-                added += 1
-            elif len(overlapping) == 1:
-                # The large pass found the line but cut it short (e.g. dropped the
-                # trailing hearts of a big moan), so OCR rejects the truncated crop.
-                # When the small pass box fully contains it and is clearly larger,
-                # prefer the small pass quad.
-                i, inter, area = overlapping[0]
-                bx, by, bw, bh = boxes[i]
-                if inter >= 0.8 * area and max(w, h) >= _SMALL_PASS_GROW * max(bw, bh):
-                    textlines[i] = q
-                    boxes[i] = (x, y, w, h)
-                    added += 1
+        textlines, added = combinar_pasada_chica(textlines, small_lines)
         if added:
             if small_mask.shape != raw_mask.shape:
                 small_mask = cv2.resize(small_mask, (raw_mask.shape[1], raw_mask.shape[0]), interpolation=cv2.INTER_LINEAR)
