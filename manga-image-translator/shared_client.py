@@ -994,7 +994,11 @@ def _resolver_traduccion_dialogo(original: str, traduccion_nllb: str) -> str:
 _CJK_RE = re.compile(r"[぀-ヿ一-鿿]")
 _CJK_MIN_DIALOGO = 10
 _SFX_KATAKANA_MAX = 8
-_PARTICULA_FINAL_RE = re.compile(r"[だなねよかのぞわさ][…!?。！？~〜ー.]*$")
+# Final de oración hablada: partículas (だ, な, ね, よ…) y también los
+# finales verbales más comunes です/ます (す) y el pasado (た), que antes
+# dejaban fuera frases como "もちろんです" o "わかった" cuando el globo no
+# se reconocía por color.
+_PARTICULA_FINAL_RE = re.compile(r"[だなねよかのぞわさすた][…!?。！？~〜ー.]*$")
 _HIRAGANA_REPETIDA_RE = re.compile(r"([぀-ゟ]{2})\1")
 
 
@@ -1295,13 +1299,35 @@ def _kana_a_romaji(texto: str) -> str:
     return "".join(out)
 
 
+# Forma de una vocalización: vocales, ん/っ/ー, o sílabas de respiración
+# (は/ひ/ふ/へ/ほ, く, き, や, に, む, ん) SEGUIDAS de kana chico, っ o ー
+# ("はぁ", "ふぅ", "ひゃ", "きゃあ", "んほぉ", "くっ"). Se mira en hiragana.
+_GEMIDO_FORMA_RE = re.compile(
+    r"^(?:[あいうえおぁぃぅぇぉんっー]|[はひふへほくきやにむ][ぁぃぅぇぉゃゅょっー]+)+$")
+# Palabras de solo vocales que en realidad son respuestas, no gemidos.
+_NO_SON_GEMIDOS = {"はい", "ええ", "うん", "ううん", "いいえ", "いえ", "いい", "おい", "あい", "いや", "えっ"}
+
+
 def _es_solo_gemido(texto: str) -> bool:
-    """Kana plus moan punctuation only (no kanji, no Latin): a vocalisation
-    like "はぁ…♡" that NLLB/Yandex render as invented phrases."""
+    """True solo para una vocalización ("はぁ…♡", "あああっ", "んっ♡",
+    "ひゃあ") que NLLB/Yandex convierten en frases inventadas.
+
+    Bug corregido: antes bastaba con que el texto fuera solo kana, pero en
+    japonés muchísimas frases normales van sin kanji ("もちろんです",
+    "できるはずだ", "それになんというか…", "はい", nombres en katakana como
+    "ガイン"). fase2_aplicar las pasaba a romaji PISANDO la traducción de
+    Yandex, y en globos verticales además las cortaba cada 3 letras: así
+    salían "Moc hir ond esu", "Dek iru haz uda", "Hod oho don ina gai n"."""
     letras = [c for c in texto if c not in _MOAN_SYMBOLS]
     if not letras:
         return False
-    return all("ぁ" <= c <= "ゖ" or "ァ" <= c <= "ヶ" for c in letras)
+    if not all("ぁ" <= c <= "ゖ" or "ァ" <= c <= "ヶ" for c in letras):
+        return False
+    # Katakana a hiragana (mismos puntos de código corridos 0x60), ー se queda.
+    hira = "".join(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c for c in letras)
+    if hira in _NO_SON_GEMIDOS:
+        return False
+    return bool(_GEMIDO_FORMA_RE.match(hira))
 
 
 def _gemido_a_texto(texto: str) -> str:
