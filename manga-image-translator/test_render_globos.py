@@ -12,17 +12,19 @@ import numpy as np
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RUTA = os.path.join(AQUI, "manga_translator", "rendering", "__init__.py")
 FUNCIONES = {"_paper_gray", "_floodfill_balloon", "_looks_like_leak", "_open_space_box",
-             "_grow_blank_rect", "_closed_balloon_behind"}
+             "_grow_blank_rect", "_closed_balloon_behind", "_LineBox", "_in_fill",
+             "split_regions_across_balloons", "_invalidate_cached"}
 
 
 def _cargar(src):
     arbol = ast.parse(src)
     keep = [n for n in arbol.body
-            if (isinstance(n, ast.FunctionDef) and n.name in FUNCIONES)
+            if (isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name in FUNCIONES)
             or (isinstance(n, ast.Assign) and all(getattr(t, "id", "").isupper() or
                                                   getattr(t, "id", "").startswith("_") and getattr(t, "id", "")[1:].isupper()
                                                   for t in n.targets))]
-    ns = {"np": np, "cv2": cv2}
+    import logging
+    ns = {"np": np, "cv2": cv2, "List": list, "logger": logging.getLogger("test")}
     exec(compile(ast.Module(keep, []), RUTA, "exec"), ns)
     return ns
 
@@ -112,3 +114,45 @@ def test_texto_sobre_el_arte_no_es_globo():
 def test_globo_abierto_no_cuenta_como_cerrado():
     img = _pagina_con_globo(abierto=True)
     assert not ns["_closed_balloon_behind"](img, COLUMNA)
+
+
+# ── Bloques que textline_merge juntó por distancia ───────────────────────────
+
+class Bloque:
+    """Lo mínimo de un TextBlock: líneas (polígonos), textos por línea."""
+    def __init__(self, cajas, textos):
+        self.lines = np.array([[[x, y], [x + w, y], [x + w, y + h], [x, y + h]] for x, y, w, h in cajas])
+        self.texts = list(textos)
+        self.text = "".join(textos)
+
+
+def _dos_globos_pegados():
+    img = np.full((600, 600, 3), 255, np.uint8)
+    cv2.ellipse(img, (200, 300), (90, 150), 0, 0, 360, (0, 0, 0), 4)
+    cv2.ellipse(img, (385, 300), (90, 150), 0, 0, 360, (0, 0, 0), 4)
+    return img
+
+
+def test_columnas_de_dos_globos_se_separan():
+    # Columna derecha del globo izquierdo y columna izquierda del derecho:
+    # 60 px de distancia, textline_merge las junta en un solo bloque.
+    bloque = Bloque([(345, 200, 28, 200), (255, 200, 28, 200)], ["ほどほどにな", "ガイン"])
+    out = ns["split_regions_across_balloons"](_dos_globos_pegados(), [bloque])
+    assert [r.text for r in out] == ["ほどほどにな", "ガイン"]
+    assert len(out[0].lines) == 1 and len(out[1].lines) == 1
+
+
+def test_dos_columnas_del_mismo_globo_quedan_juntas():
+    bloque = Bloque([(205, 200, 28, 200), (165, 200, 28, 200)], ["もちろん", "です"])
+    out = ns["split_regions_across_balloons"](_dos_globos_pegados(), [bloque])
+    assert len(out) == 1 and out[0] is bloque
+
+
+def test_bloque_sobre_el_arte_no_se_toca():
+    img = np.full((600, 600, 3), 255, np.uint8)
+    for x in range(0, 600, 4):
+        cv2.line(img, (x, 0), (x, 600), (0, 0, 0), 1)
+    img[200:400, 160:240] = 255  # el texto borrado deja papel solo bajo las letras
+    bloque = Bloque([(205, 200, 28, 200), (165, 200, 28, 200)], ["ドド", "ド"])
+    out = ns["split_regions_across_balloons"](img, [bloque])
+    assert len(out) == 1 and out[0] is bloque

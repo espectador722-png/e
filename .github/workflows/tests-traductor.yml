@@ -1,6 +1,6 @@
 # Corre los tests del traductor en cada subida y en cada PR, para que un
 # arreglo (romaji en frases en kana, páginas dadas por traducidas con el texto
-# original, cajas duplicadas del detector, letra diminuta en globos) no se rompa sin que nadie lo note.
+# original, cajas duplicadas del detector, letra diminuta y globos juntados) no se rompa sin que nadie lo note.
 # Los tests no usan red, GPU ni modelos.
 name: Tests del traductor
 

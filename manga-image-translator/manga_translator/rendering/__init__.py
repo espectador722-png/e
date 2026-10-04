@@ -376,6 +376,88 @@ def _script(text: str) -> str:
     return "mixed" if cjk and latin else "cjk" if cjk else "latin" if latin else "none"
 
 
+class _LineBox:
+    """Just the xyxy of one detected line, for the balloon helpers above."""
+    def __init__(self, pts):
+        pts = np.asarray(pts)
+        self.xyxy = (int(pts[:, 0].min()), int(pts[:, 1].min()), int(pts[:, 0].max()), int(pts[:, 1].max()))
+        self.center = ((self.xyxy[0] + self.xyxy[2]) / 2, (self.xyxy[1] + self.xyxy[3]) / 2)
+
+
+# A line's own fill must be at least this many times its box to count as the
+# balloon it sits in (smaller = a pocket between inpainting leftovers).
+_SPLIT_MIN_BALLOON_RATIO = 1.5
+
+
+def _in_fill(fill, point) -> bool:
+    mask, (bx1, by1, bx2, by2) = fill
+    cx, cy = int(point[0]), int(point[1])
+    return bx1 <= cx < bx2 and by1 <= cy < by2 and mask[cy - by1, cx - bx1] > 0
+
+
+def split_regions_across_balloons(img: np.ndarray, regions: List['TextBlock']) -> List['TextBlock']:
+    """
+    textline_merge joins detected lines by distance alone (two lines closer
+    than 1.5 characters are one block) and never sees the page, so columns
+    of two balloons drawn next to each other came out as ONE region: both
+    sentences translated together and drawn in one balloon, the other left
+    blank or overlapped ("junta globos"). Split a region whose lines sit in
+    different closed balloons, keeping each part's reading order. Any line
+    whose balloon can't be traced (leaky outline, text over the art, a
+    pocket between inpainting leftovers) leaves the region as it was.
+    """
+    import copy
+    out = []
+    for region in regions or []:
+        lines = getattr(region, "lines", None)
+        texts = getattr(region, "texts", None) or []
+        if lines is None or len(lines) < 2 or len(texts) != len(lines):
+            out.append(region)
+            continue
+        boxes = [_LineBox(pts) for pts in lines]
+        fills = [_floodfill_balloon(img, b) for b in boxes]
+        fiable = True
+        for b, f in zip(boxes, fills):
+            if f is None:
+                fiable = False
+                break
+            x1, y1, x2, y2 = b.xyxy
+            if np.count_nonzero(f[0]) < _SPLIT_MIN_BALLOON_RATIO * max(1, (x2 - x1) * (y2 - y1)):
+                fiable = False
+                break
+        if not fiable:
+            out.append(region)
+            continue
+        grupo = list(range(len(lines)))
+        def raiz(i):
+            while grupo[i] != i:
+                i = grupo[i]
+            return i
+        for i in range(len(lines)):
+            for j in range(i + 1, len(lines)):
+                if _in_fill(fills[i], boxes[j].center) or _in_fill(fills[j], boxes[i].center):
+                    grupo[raiz(j)] = raiz(i)
+        partes = {}
+        for i in range(len(lines)):
+            partes.setdefault(raiz(i), []).append(i)
+        if len(partes) == 1:
+            out.append(region)
+            continue
+        for idxs in sorted(partes.values(), key=min):
+            new = copy.copy(region)
+            new.lines = np.asarray(lines)[idxs]
+            new.texts = [texts[i] for i in idxs]
+            text = new.texts[0]
+            for t in new.texts[1:]:
+                cjk = text and ('　' <= text[-1] <= '鿿' or '　' <= t[:1] <= '鿿')
+                text += t if cjk else ' ' + t
+            new.text = text
+            _invalidate_cached(new)
+            out.append(new)
+        logger.info(f'Split one region across {len(partes)} balloons: {region.text!r}')
+    return out
+
+
 def merge_regions_by_balloon(img: np.ndarray, regions: List['TextBlock']) -> List['TextBlock']:
     """
     Joins regions that sit inside the same balloon into one, BEFORE
@@ -392,6 +474,7 @@ def merge_regions_by_balloon(img: np.ndarray, regions: List['TextBlock']) -> Lis
     """
     import copy
     # Pages without text (covers, full-page art) arrive as None.
+    regions = split_regions_across_balloons(img, regions)
     if not regions or len(regions) < 2:
         return regions or []
     # Open-space box as fallback: joined dark narration boxes leak as one
