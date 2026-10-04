@@ -292,6 +292,7 @@ async def endpoint_llm_process(request: Request):
         Image.fromarray(img_inpainted).save(buf, format="PNG")
         return Response(content=buf.getvalue(), media_type="image/png")
 
+    sc.avisar_sin_traducir(text_regions, indices_dialogo)
     resultados = [region.text for region in text_regions]
 
     # The whole page goes to Yandex in one call with context
@@ -303,10 +304,20 @@ async def endpoint_llm_process(request: Request):
         request.query_params.get("manga_dir"))
     # Lines the web chain couldn't translate: one NLLB batch on 'shared'
     # (fase 1 no longer runs NLLB, see shared_client._nllb_via_shared).
-    await asyncio.get_running_loop().run_in_executor(
-        None, sc._completar_con_nllb, text_regions, faltan, resultados)
+    try:
+        await asyncio.get_running_loop().run_in_executor(
+            None, sc._completar_con_nllb, text_regions, faltan, resultados)
+    except sc.SinTraductorDisponible as e:
+        # La página no se dibuja con texto sin traducir: manga_traductor.py
+        # la marca como fallida y la reintenta más tarde (solo fase 2).
+        raise HTTPException(503, str(e))
     for idx in indices_dialogo:
         resultados[idx] = postprocesar(resultados[idx])
+    # Control de calidad: diálogos que quedaron sin traducir viajan en un
+    # encabezado (JSON en ASCII) para que la app los anote en su reporte.
+    sin_traducir = sc.dialogos_sin_traducir(text_regions, resultados, indices_dialogo)
+    for texto in sin_traducir:
+        print(f"[fase2] diálogo que quedó sin traducir: {texto[:80]!r}", file=sys.stderr)
 
     sc.fase2_aplicar(text_regions, resultados, clasificacion_color)
 
@@ -320,7 +331,11 @@ async def endpoint_llm_process(request: Request):
 
     buf = io.BytesIO()
     Image.fromarray(img_final).save(buf, format="PNG")
-    return Response(content=buf.getvalue(), media_type="image/png")
+    headers = {}
+    if sin_traducir:
+        import json
+        headers["X-Sin-Traducir"] = json.dumps([t[:80] for t in sin_traducir[:10]])
+    return Response(content=buf.getvalue(), media_type="image/png", headers=headers)
 
 
 # Video subtitles (routes/subtitles.py in the Flask app, which runs on the

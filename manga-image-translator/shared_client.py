@@ -214,11 +214,18 @@ def _cargar_engine_state() -> dict:
 
 
 def _guardar_engine_state(estado: dict) -> None:
+    # Escritura atómica: el worker y los subprocess escriben este archivo a la
+    # vez; uno escrito a medias se leía como {} y se perdían los cooldowns.
+    tmp = f"{_ENGINE_COOLDOWN_FILE}.{os.getpid()}.{threading.get_ident()}.tmp"
     try:
-        with open(_ENGINE_COOLDOWN_FILE, "w", encoding="utf-8") as f:
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(estado, f)
+        os.replace(tmp, _ENGINE_COOLDOWN_FILE)
     except OSError:
-        pass
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
 
 
 _yandex_ucid = None
@@ -621,8 +628,22 @@ def _preparar_dialogo(text: str):
     return "core", core, simbolos
 
 
+def _sigue_en_japones(traduccion: str) -> bool:
+    """True si el motor devolvió el texto (casi) sin traducir: más caracteres
+    japoneses que letras latinas, o algún kanji. Un kana suelto pegado a una
+    traducción buena ("Graciasメ") se limpia aparte, no cuenta acá."""
+    cjk = len(_CJK_RE.findall(traduccion))
+    latinas = len(re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñü]", traduccion))
+    return cjk > latinas or bool(re.search(r"[一-鿿]", traduccion))
+
+
 def _terminar_dialogo(traduccion: str, simbolos, core: str) -> str | None:
-    """Post-translation cleanup of one region (see _preparar_dialogo)."""
+    """Post-translation cleanup of one region (see _preparar_dialogo).
+    None si el motor devolvió japonés: antes se le borraba el kana y quedaba
+    el kanji suelto ("マフサジ中" -> "中") dibujado como si fuera la
+    traducción; con None la línea pasa al siguiente motor / NLLB."""
+    if _sigue_en_japones(traduccion):
+        return None
     traduccion = _KANA_RE.sub("", "".join(c for c in traduccion if c not in _SIMBOLOS_DECORATIVOS)).strip()
     traduccion = _ajustar_inicio(_quitar_ingles(traduccion), core)
     traduccion = _abrir_signos(_colapsar_repeticiones(traduccion).replace(".…", "…"))
@@ -804,17 +825,34 @@ def _nllb_via_shared(texts: list[str], target_lang: str = "ESP") -> list[str] | 
         return resultado if len(resultado) == len(texts) else None
 
 
+class SinTraductorDisponible(RuntimeError):
+    """Yandex, MyMemory y NLLB fallaron para alguna línea de diálogo."""
+
+
 def _completar_con_nllb(text_regions, faltan, resultados) -> None:
     """Lines where the web chain returned nothing (not merely an unchanged
     text: Yandex echoes interjections like "AAH" as-is, and sending those to
     NLLB made every page wait on the busy 'shared' server) go to NLLB in one
     batch, filtered by _es_alucinacion as before. Known SFX are not sent:
-    they skip translation. Unresolved lines keep the original."""
+    they skip translation.
+
+    Si NLLB tampoco responde (server 'shared' caído, u ocupado con fase 1
+    más de _NLLB_BUSY_WAIT_SECONDS), se levanta SinTraductorDisponible. Antes
+    esas líneas se quedaban con el texto original y la página se dibujaba y
+    se daba por terminada: así quedaban globos sin traducir que nunca se
+    reintentaban. Ahora la página falla, el llamador (manga_traductor.py) la
+    marca como fallida conservando el pickle de fase 1, y el reintento
+    automático repite solo esta fase cuando los motores vuelvan."""
     faltan = [i for i in faltan if not _es_sfx_conocida(text_regions[i].text)]
     if not faltan:
         return
     partes = [_separar_simbolos(text_regions[i].text) for i in faltan]
-    nllb = _nllb_via_shared([core for core, _ in partes]) or []
+    nllb = _nllb_via_shared([core for core, _ in partes])
+    if nllb is None:
+        ejemplos = "; ".join(repr(text_regions[i].text[:40]) for i in faltan[:3])
+        raise SinTraductorDisponible(
+            f"Yandex, MyMemory y NLLB no tradujeron {len(faltan)} línea(s) de diálogo "
+            f"(ej.: {ejemplos})")
     for i, (core, simbolos), traduccion in zip(faltan, partes, nllb):
         resultados[i] = _pegar_simbolos(_resolver_traduccion_dialogo(core, traduccion), simbolos)
 
@@ -977,7 +1015,11 @@ def _resolver_traduccion_dialogo(original: str, traduccion_nllb: str) -> str:
 _CJK_RE = re.compile(r"[぀-ヿ一-鿿]")
 _CJK_MIN_DIALOGO = 10
 _SFX_KATAKANA_MAX = 8
-_PARTICULA_FINAL_RE = re.compile(r"[だなねよかのぞわさ][…!?。！？~〜ー.]*$")
+# Final de oración hablada: partículas (だ, な, ね, よ…) y también los
+# finales verbales más comunes です/ます (す) y el pasado (た), que antes
+# dejaban fuera frases como "もちろんです" o "わかった" cuando el globo no
+# se reconocía por color.
+_PARTICULA_FINAL_RE = re.compile(r"[だなねよかのぞわさすた][…!?。！？~〜ー.]*$")
 _HIRAGANA_REPETIDA_RE = re.compile(r"([぀-ゟ]{2})\1")
 
 
@@ -1195,6 +1237,46 @@ def _sin_basura_cjk(regions):
     return [r for r in regions if not es_basura(r)]
 
 
+def regiones_sin_traducir(regions, indices_dialogo) -> list[str]:
+    """Textos que fase 2 va a dejar en el idioma original porque no se
+    clasificaron como diálogo (ni globo por color ni forma de oración) y no
+    son SFX conocidas ni gemidos. Solo para diagnóstico: si en el log
+    aparecen diálogos reales acá, el problema está en la clasificación
+    (_clasificar_bubble_heuristica / _parece_dialogo_real), no en los
+    traductores."""
+    dialogo = set(indices_dialogo)
+    salida = []
+    for i, r in enumerate(regions):
+        texto = (r.text or "").strip()
+        if i in dialogo or not texto or _es_sfx_conocida(texto) or _es_solo_gemido(texto):
+            continue
+        if any(c.isalpha() for c in texto):
+            salida.append(texto)
+    return salida
+
+
+def dialogos_sin_traducir(regions, resultados, indices_dialogo) -> list[str]:
+    """Control de calidad al final de fase 2: diálogos que, después de todos
+    los motores, siguen iguales al original o en japonés (sin contar SFX,
+    gemidos ni interjecciones, que se dejan así a propósito)."""
+    salida = []
+    for i in indices_dialogo:
+        original = (regions[i].text or "").strip()
+        final = (resultados[i] or "").strip()
+        if not original or not any(c.isalpha() for c in original):
+            continue
+        if _es_sfx_conocida(original) or _es_solo_gemido(original):
+            continue
+        if final == original or _sigue_en_japones(final):
+            salida.append(original)
+    return salida
+
+
+def avisar_sin_traducir(regions, indices_dialogo) -> None:
+    for texto in regiones_sin_traducir(regions, indices_dialogo):
+        print(f"[fase2] queda sin traducir (no parece diálogo): {texto[:80]!r}", file=sys.stderr)
+
+
 def fase2_preparar(img_inpainted, text_regions):
     """Shared fase-2 front half (worker_server, llm-process and the regression
     harness): one region per balloon, then balloon/dialogue classification.
@@ -1255,13 +1337,35 @@ def _kana_a_romaji(texto: str) -> str:
     return "".join(out)
 
 
+# Forma de una vocalización: vocales, ん/っ/ー, o sílabas de respiración
+# (は/ひ/ふ/へ/ほ, く, き, や, に, む, ん) SEGUIDAS de kana chico, っ o ー
+# ("はぁ", "ふぅ", "ひゃ", "きゃあ", "んほぉ", "くっ"). Se mira en hiragana.
+_GEMIDO_FORMA_RE = re.compile(
+    r"^(?:[あいうえおぁぃぅぇぉんっー]|[はひふへほくきやにむ][ぁぃぅぇぉゃゅょっー]+)+$")
+# Palabras de solo vocales que en realidad son respuestas, no gemidos.
+_NO_SON_GEMIDOS = {"はい", "ええ", "うん", "ううん", "いいえ", "いえ", "いい", "おい", "あい", "いや", "えっ"}
+
+
 def _es_solo_gemido(texto: str) -> bool:
-    """Kana plus moan punctuation only (no kanji, no Latin): a vocalisation
-    like "はぁ…♡" that NLLB/Yandex render as invented phrases."""
+    """True solo para una vocalización ("はぁ…♡", "あああっ", "んっ♡",
+    "ひゃあ") que NLLB/Yandex convierten en frases inventadas.
+
+    Bug corregido: antes bastaba con que el texto fuera solo kana, pero en
+    japonés muchísimas frases normales van sin kanji ("もちろんです",
+    "できるはずだ", "それになんというか…", "はい", nombres en katakana como
+    "ガイン"). fase2_aplicar las pasaba a romaji PISANDO la traducción de
+    Yandex, y en globos verticales además las cortaba cada 3 letras: así
+    salían "Moc hir ond esu", "Dek iru haz uda", "Hod oho don ina gai n"."""
     letras = [c for c in texto if c not in _MOAN_SYMBOLS]
     if not letras:
         return False
-    return all("ぁ" <= c <= "ゖ" or "ァ" <= c <= "ヶ" for c in letras)
+    if not all("ぁ" <= c <= "ゖ" or "ァ" <= c <= "ヶ" for c in letras):
+        return False
+    # Katakana a hiragana (mismos puntos de código corridos 0x60), ー se queda.
+    hira = "".join(chr(ord(c) - 0x60) if "ァ" <= c <= "ヶ" else c for c in letras)
+    if hira in _NO_SON_GEMIDOS:
+        return False
+    return bool(_GEMIDO_FORMA_RE.match(hira))
 
 
 def _gemido_a_texto(texto: str) -> str:
@@ -1337,9 +1441,12 @@ def _modo_llm_process(argv: list[str]) -> int:
     # documentado en ese mismo comentario: caso "HEY!" -> Yandex="¡OYE!"
     # descartado). Se saca esa votación: si Yandex responde, se usa directo;
     # solo cae a NLLB si Yandex falla o está en cooldown por rate-limit.
+    avisar_sin_traducir(text_regions, indices_dialogo)
     resultados = [region.text for region in text_regions]
     faltan = _traducir_pagina(text_regions, indices_dialogo, resultados, manga_dir)
     _completar_con_nllb(text_regions, faltan, resultados)
+    for texto in dialogos_sin_traducir(text_regions, resultados, indices_dialogo):
+        print(f"[fase2] diálogo que quedó sin traducir: {texto[:80]!r}", file=sys.stderr)
 
     # region.font_size is left alone: resize_regions_to_font_size measures the
     # real balloon itself. _es_bubble_real tells the renderer whether to trust

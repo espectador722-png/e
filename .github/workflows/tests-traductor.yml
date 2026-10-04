@@ -1,0 +1,28 @@
+# Corre los tests del traductor en cada subida y en cada PR, para que un
+# arreglo (romaji en frases en kana, páginas dadas por traducidas con el texto
+# original, cajas duplicadas del detector, letra diminuta y globos juntados) no se rompa sin que nadie lo note.
+# Los tests no usan red, GPU ni modelos.
+name: Tests del traductor
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: manga-image-translator
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # test_render_globos compara contra la versión original del renderer.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar dependencias mínimas
+        run: pip install pytest numpy opencv-python-headless pillow requests
+      - name: Correr tests
+        run: python -m pytest -q test_shared_client_fase2.py test_deteccion_dos_pasadas.py test_render_globos.py

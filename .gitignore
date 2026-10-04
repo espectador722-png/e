@@ -1,0 +1,10 @@
+# Archivos que Python genera solo: no hace falta subirlos
+__pycache__/
+*.pyc
+
+# Restos de depuración del traductor (pesan mucho y cambian en cada prueba)
+manga-image-translator/_debug*
+manga-image-translator/_test_*
+manga-image-translator/_engine_cooldown.json
+*.pkl
+*.log
